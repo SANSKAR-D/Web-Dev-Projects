@@ -1,0 +1,14 @@
+{
+  "name": "knightcode-monorepo",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace=apps/web\" \"npm run dev --workspace=apps/api\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  }
+}
