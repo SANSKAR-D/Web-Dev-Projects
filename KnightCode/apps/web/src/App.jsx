@@ -1,41 +1,47 @@
+// src/App.jsx
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import AppShell from './components/layout/AppShell.jsx';
+import { ConfigProvider, theme } from 'antd';
 import AuthPage from './pages/AuthPage.jsx';
+import Profile from './pages/Profile.jsx';
+import Home from './pages/Home.jsx';
+import GrainOverlay from './components/layout/GrainOverlay.jsx';
+import ProtectedRoute from './components/ProtectedRoute.jsx';
 import { AuthProvider } from './hooks/useAuth.jsx';
-
-// Placeholder Home Page
-const Sanctum = () => (
-  <div style={{ padding: '2rem' }}>
-    <h1 style={{ fontStyle: 'italic', fontSize: '3rem', marginBottom: '1rem', color: 'var(--gold-bright)' }}>Sharpen thy blade. The arena awaits.</h1>
-    <p>Welcome to the KnightCode CodeArena. Prepare for battle.</p>
-  </div>
-);
 
 function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
+    <ConfigProvider
+      theme={{
+        algorithm: theme.darkAlgorithm,
+        token: {
+          colorPrimary: '#D4A83C',
+          colorBgBase: '#0D0B09',
+          colorTextBase: '#F0E0B0',
+          fontFamily: "'Playfair Display', serif",
+        },
+      }}
+    >
+      <AuthProvider>
+        <BrowserRouter>
         {/* SVG grain filter injected into DOM to match architecture */}
-        <svg className="grain-overlay" xmlns="http://www.w3.org/2000/svg">
-          <filter id="grain">
-            <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/>
-            <feColorMatrix type="saturate" values="0"/>
-            <feBlend in="SourceGraphic" mode="overlay" result="blend"/>
-            <feComposite in="blend" in2="SourceGraphic" operator="atop"/>
-          </filter>
-          <rect width="100%" height="100%" filter="url(#grain)" opacity="1"/>
-        </svg>
+        <GrainOverlay />
         
         <Routes>
-          <Route element={<AppShell />}>
-            <Route path="/" element={<Sanctum />} />
+          <Route element={<ProtectedRoute onlyUnauthenticated />}>
             <Route path="/login" element={<AuthPage mode="login" />} />
             <Route path="/register" element={<AuthPage mode="register" />} />
           </Route>
+
+          <Route element={<ProtectedRoute />}>
+            <Route path="/sanctum/:username" element={<Profile />} />
+          </Route>
+
+          <Route path="/" element={<Home />} />
         </Routes>
       </BrowserRouter>
-    </AuthProvider>
+      </AuthProvider>
+    </ConfigProvider>
   );
 }
 

@@ -23,10 +23,10 @@ const userSchema = new mongoose.Schema({
     required: true
   },
   ratings: {
-    dsa: { type: Number, default: 1200 },
-    cp: { type: Number, default: 1200 },
-    interview: { type: Number, default: 1200 },
-    contest: { type: Number, default: 1200 }
+    dsa: { type: Number, default: 0 },
+    cp: { type: Number, default: 0 },
+    interview: { type: Number, default: 0 },
+    contest: { type: Number, default: 0 }
   },
   streak: {
     current: { type: Number, default: 0 },
@@ -38,7 +38,7 @@ const userSchema = new mongoose.Schema({
     language: {
       type: String,
       enum: ['cpp', 'python', 'java', 'js', 'go', 'rust'],
-      default: 'js'
+      default: 'cpp'
     },
     theme: {
       type: String,

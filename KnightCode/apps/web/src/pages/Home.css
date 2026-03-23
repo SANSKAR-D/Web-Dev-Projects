@@ -1,0 +1,108 @@
+/* src/pages/Home.css */
+.sanctum-home {
+  position: relative;
+  min-height: 100vh;
+  color: var(--text);
+  overflow-x: hidden;
+}
+
+/* Hero Section */
+.hero-band {
+  height: 80vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  z-index: 10;
+  padding: 2rem;
+}
+
+.hero-band h1 {
+  font-family: var(--font-display);
+  font-size: 4rem;
+  font-style: italic;
+  font-weight: 400;
+  color: var(--gold-bright);
+  margin-bottom: 2rem;
+  text-shadow: 0 4px 12px rgba(0,0,0,0.8);
+}
+
+.hero-actions {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+}
+
+/* Content Sections */
+.sanctum-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 4rem 2rem;
+  position: relative;
+  z-index: 10;
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-style: italic;
+  color: var(--gold-mid);
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(184, 144, 42, 0.2);
+  padding-bottom: 0.5rem;
+}
+
+/* Grids */
+.carousel-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-bottom: 4rem;
+}
+
+.problem-card {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.problem-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.problem-title {
+  font-family: var(--font-ui);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.problem-meta {
+  display: flex;
+  gap: 0.75rem;
+  font-family: var(--font-code);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.difficulty-glyph {
+  color: var(--warn);
+}
+
+.difficulty-glyph.easy { color: var(--success); }
+.difficulty-glyph.hard { color: var(--error); }
+
+.badge-pill {
+  background: rgba(184, 144, 42, 0.1);
+  border: 1px solid var(--gold-dim);
+  color: var(--gold-bright);
+  padding: 0.2rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-family: var(--font-ui);
+}

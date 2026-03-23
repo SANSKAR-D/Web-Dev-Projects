@@ -1,7 +1,8 @@
 import axios from 'axios';
 
 const client = axios.create({
-  baseURL: 'http://localhost:3001/api', // Match API port in docker/architecture
+  // Use Vite proxy in development by default; allow overrides via env.
+  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
 });
 
 client.interceptors.request.use((config) => {
