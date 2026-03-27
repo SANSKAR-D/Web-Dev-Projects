@@ -112,11 +112,12 @@
 }
 
 .solve-description {
-  font-family: 'IM Fell English', serif;
-  font-size: 1rem;
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 0.97rem;
   color: #D4C8A0;
-  line-height: 1.75;
+  line-height: 1.8;
   white-space: pre-wrap;
+  font-variant-numeric: lining-nums tabular-nums;
 }
 
 .solve-constraints-list {
