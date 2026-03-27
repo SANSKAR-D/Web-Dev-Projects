@@ -7,20 +7,20 @@ import SacredGeometryCanvas from '../components/three/SacredGeometryCanvas.jsx';
 
 const tomes = [
   { id: 1, numeral: 'I', title: 'Array' },
-  { id: 2, numeral: 'II', title: 'Hash Table' },
-  { id: 3, numeral: 'III', title: 'Two Pointers' },
-  { id: 4, numeral: 'IV', title: 'Binary Search' },
-  { id: 5, numeral: 'V', title: 'Linked List' },
+  { id: 2, numeral: 'II', title: 'String' },
+  { id: 3, numeral: 'III', title: 'Hash Table' },
+  { id: 4, numeral: 'IV', title: 'Two Pointers' },
+  { id: 5, numeral: 'V', title: 'Sliding Window' },
   { id: 6, numeral: 'VI', title: 'Stack' },
-  { id: 7, numeral: 'VII', title: 'Tree' },
-  { id: 8, numeral: 'VIII', title: 'Heap' },
-  { id: 9, numeral: 'IX', title: 'Graph' },
-  { id: 10, numeral: 'X', title: 'Dynamic Programming' },
-  { id: 11, numeral: 'XI', title: 'Greedy' },
-  { id: 12, numeral: 'XII', title: 'Backtracking' },
-  { id: 13, numeral: 'XIII', title: 'Sliding Window' },
-  { id: 14, numeral: 'XIV', title: 'Sorting' },
-  { id: 15, numeral: 'XV', title: 'String' }
+  { id: 7, numeral: 'VII', title: 'Linked List' },
+  { id: 8, numeral: 'VIII', title: 'Binary Search' },
+  { id: 9, numeral: 'IX', title: 'Sorting' },
+  { id: 10, numeral: 'X', title: 'Tree' },
+  { id: 11, numeral: 'XI', title: 'Heap' },
+  { id: 12, numeral: 'XII', title: 'Greedy' },
+  { id: 13, numeral: 'XIII', title: 'Backtracking' },
+  { id: 14, numeral: 'XIV', title: 'Graph' },
+  { id: 15, numeral: 'XV', title: 'Dynamic Programming' }
 ];
 
 // SVG dimensions
