@@ -59,4 +59,40 @@ router.get('/topics', async (req, res) => {
   }
 });
 
+// @desc    Get single question full details by _id
+// @route   GET /api/problems/question?id=<_id>&topic=...&difficulty=...
+// @access  Public
+router.get('/question', async (req, res) => {
+  try {
+    const { id, topic, difficulty } = req.query;
+
+    if (!id || !topic || !difficulty) {
+      return res.status(400).json({ message: 'id, topic, and difficulty are required' });
+    }
+
+    const level = difficulty.charAt(0).toUpperCase() + difficulty.slice(1).toLowerCase();
+
+    const topicDoc = await Topic.findOne(
+      { name: topic, 'difficulties.level': level },
+      { 'difficulties.$': 1 }
+    ).lean();
+
+    if (!topicDoc || !topicDoc.difficulties || topicDoc.difficulties.length === 0) {
+      return res.status(404).json({ message: 'Topic or difficulty not found' });
+    }
+
+    const questions = topicDoc.difficulties[0].questions || [];
+    const question = questions.find(q => q._id.toString() === id);
+
+    if (!question) {
+      return res.status(404).json({ message: 'Question not found' });
+    }
+
+    res.json(question);
+  } catch (error) {
+    console.error('Question route error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 module.exports = router;

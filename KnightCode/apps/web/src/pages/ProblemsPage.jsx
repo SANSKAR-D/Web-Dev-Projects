@@ -98,12 +98,11 @@ const ProblemsPage = () => {
         ) : (
           <div className="problems-grid">
             {problems.map((problem, i) => (
-              <motion.a
+              <motion.div
                 key={problem._id || problem.serialNo}
                 className="problem-card"
-                href={problem.link}
-                target="_blank"
-                rel="noopener noreferrer"
+                onClick={() => navigate(`/solve?id=${problem._id}&topic=${encodeURIComponent(topic)}&difficulty=${difficulty}`)}
+                style={{ cursor: 'pointer' }}
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.35, delay: 0.04 * Math.min(i, 15) }}
@@ -117,9 +116,9 @@ const ProblemsPage = () => {
                 <h3 className="problem-title">{problem.title}</h3>
                 <div className="problem-card-bottom">
                   <span className="problem-diff-glyph" style={{ color: meta.color }}>{meta.glyph}</span>
-                  <span className="problem-link-arrow">Open →</span>
+                  <span className="problem-link-arrow">Solve →</span>
                 </div>
-              </motion.a>
+              </motion.div>
             ))}
           </div>
         )}

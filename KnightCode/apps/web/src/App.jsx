@@ -15,6 +15,7 @@ import Chakras from './pages/Chakras.jsx';
 import Leaderboard from './pages/Leaderboard.jsx';
 import Astraverse from './pages/Astraverse.jsx';
 import Arena from './pages/Arena.jsx';
+import SolvePage from './pages/SolvePage.jsx';
 
 function App() {
   return (
@@ -49,6 +50,7 @@ function App() {
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/astraverse" element={<Astraverse />} />
             <Route path="/arena" element={<Arena />} />
+            <Route path="/solve" element={<SolvePage />} />
           </Route>
 
           <Route path="/" element={<Home />} />
