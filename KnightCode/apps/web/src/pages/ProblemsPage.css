@@ -1,0 +1,228 @@
+/* ── Problems Page ────────────────────────────── */
+.problems-page {
+  min-height: 100vh;
+  width: 100vw;
+  position: relative;
+}
+
+.problems-bg {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: -1;
+}
+
+.problems-vignette {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: radial-gradient(circle at center, transparent 0%, rgba(13,11,9,0.95) 100%);
+  pointer-events: none;
+}
+
+.problems-content {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 130px 2rem 4rem;
+  position: relative;
+  z-index: 10;
+}
+
+/* ── Header ────────── */
+.problems-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.back-btn {
+  display: inline-block;
+  background: none;
+  border: 1px solid rgba(184, 144, 42, 0.4);
+  color: var(--gold-mid, #D4A83C);
+  font-family: var(--font-ui, 'Playfair Display', serif);
+  font-size: 0.9rem;
+  padding: 0.5rem 1.2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-bottom: 1.5rem;
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+  border-color: var(--gold-bright, #E8C060);
+  color: var(--gold-bright, #E8C060);
+  box-shadow: 0 0 15px rgba(232, 192, 96, 0.15);
+}
+
+.problems-title {
+  font-family: var(--font-display, 'Playfair Display', serif);
+  font-size: 3rem;
+  font-style: italic;
+  color: var(--gold-bright, #E8C060);
+  text-shadow: 0 4px 25px rgba(0,0,0,0.9);
+  margin: 0 0 1rem;
+}
+
+.problems-difficulty-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-ui, 'Playfair Display', serif);
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  border: 1px solid;
+  border-radius: 20px;
+  padding: 0.4rem 1.4rem;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.problems-count {
+  font-family: var(--font-body, 'IM Fell English', serif);
+  font-size: 1rem;
+  color: var(--text-muted, #9A8060);
+  margin-top: 0.75rem;
+}
+
+/* ── No problems ────────── */
+.no-problems {
+  text-align: center;
+  padding: 4rem 2rem;
+}
+
+.no-problems p {
+  font-family: var(--font-body, 'IM Fell English', serif);
+  font-size: 1.3rem;
+  color: var(--text-muted, #9A8060);
+  font-style: italic;
+}
+
+/* ── Loading ────────── */
+.loading-state {
+  text-align: center;
+  padding: 4rem 2rem;
+}
+
+.loading-state p {
+  font-family: var(--font-body, 'IM Fell English', serif);
+  font-size: 1.3rem;
+  color: var(--gold-mid, #D4A83C);
+  font-style: italic;
+}
+
+/* ── Problem Cards Grid ────────── */
+.problems-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.problem-card {
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  padding: 1.5rem;
+  border-radius: 14px;
+  position: relative;
+  overflow: hidden;
+
+  background: linear-gradient(165deg, rgba(33, 26, 14, 0.92), rgba(13, 11, 9, 0.98));
+  border: 1px solid var(--gold-dim, #B8902A);
+
+  box-shadow:
+    0 6px 24px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(232, 192, 96, 0.06);
+
+  transition: box-shadow 0.35s ease, border-color 0.35s ease;
+  cursor: pointer;
+}
+
+/* Gold leaf accent */
+.problem-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 15%; right: 15%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold-mid, #D4A83C), var(--gold-bright, #E8C060), var(--gold-mid, #D4A83C), transparent);
+  opacity: 0.35;
+  transition: opacity 0.3s ease;
+}
+
+.problem-card:hover {
+  border-color: var(--gold-bright, #E8C060);
+  box-shadow:
+    0 8px 36px rgba(0, 0, 0, 0.6),
+    0 0 20px rgba(232, 192, 96, 0.12);
+}
+
+.problem-card:hover::before {
+  opacity: 0.9;
+}
+
+/* ── Card Content ────────── */
+.problem-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.problem-id {
+  font-family: var(--font-code, 'JetBrains Mono', monospace);
+  font-size: 0.8rem;
+  color: var(--text-muted, #9A8060);
+}
+
+.problem-acceptance {
+  font-family: var(--font-code, 'JetBrains Mono', monospace);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.problem-title {
+  font-family: var(--font-display, 'Playfair Display', serif);
+  font-size: 1.15rem;
+  color: var(--text, #F0E0B0);
+  margin: 0;
+  line-height: 1.35;
+  flex: 1;
+}
+
+.problem-card-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(184, 144, 42, 0.15);
+}
+
+.problem-diff-glyph {
+  font-size: 0.9rem;
+}
+
+.problem-link-arrow {
+  font-family: var(--font-ui, 'Playfair Display', serif);
+  font-size: 0.8rem;
+  color: var(--gold-dim, #B8902A);
+  letter-spacing: 1px;
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.problem-card:hover .problem-link-arrow {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* ── Responsive ────────── */
+@media (max-width: 768px) {
+  .problems-title {
+    font-size: 2.2rem;
+  }
+
+  .problems-grid {
+    grid-template-columns: 1fr;
+  }
+}

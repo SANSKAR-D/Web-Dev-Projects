@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth.jsx';
 import { useNavigate } from 'react-router-dom';
 import './AuthPage.css';
+import SacredGeometryCanvas from '../components/three/SacredGeometryCanvas.jsx';
 
 const AuthPage = ({ mode = "login" }) => {
   const [isLogin, setIsLogin] = useState(mode === "login");
@@ -28,7 +29,7 @@ const AuthPage = ({ mode = "login" }) => {
         await register(formData.username, formData.email, formData.password);
       }
       console.log("Authentication successful");
-      navigate('/');
+      navigate('/sanctum');
     } catch (err) {
       console.error("Authentication error:", err);
       setError(err.response?.data?.message || err.message || 'Authentication failed. The ancient ones are displeased.');
@@ -39,9 +40,10 @@ const AuthPage = ({ mode = "login" }) => {
 
   return (
     <div className="auth-page">
+      <SacredGeometryCanvas />
       <div className="codex-card auth-page__card">
         <h2 className="auth-page__title">
-          {isLogin ? 'Enter the Sanctum' : 'Join the Ranks'}
+          {isLogin ? 'Enter the Battlefield' : 'Join the Ranks'}
         </h2>
 
         {error && (

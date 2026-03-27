@@ -27,7 +27,7 @@ const SanctumMain = () => {
           {user ? (
             <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
               <span style={{ fontFamily: 'var(--font-ui)', color: 'var(--gold-mid)', fontSize: '1.1rem', letterSpacing: '1px' }}>
-                Scribe {user.username}
+                {user.username}
               </span>
               <button className="ghost-button" onClick={logout} style={{ padding: '0.5rem 1.5rem', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1px' }}>
                 Log Out
@@ -97,7 +97,7 @@ const SanctumMain = () => {
                 initial={{ opacity: 0, scale: 0.95 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 1.5, ease: "easeOut" }}
-                style={{ width: '100vw', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                style={{ width: '100vw', height: '100vh', display: 'flex', alignItems: 'left', justifyContent: 'left' }}
               >
                  <p style={{
                    fontFamily: 'var(--font-body)',
@@ -105,8 +105,9 @@ const SanctumMain = () => {
                    color: 'var(--text)',
                    textShadow: '0 4px 20px rgba(0,0,0,0.9)',
                    maxWidth: '800px',
-                   textAlign: 'center',
+                   textAlign: 'left',
                    lineHeight: '1.4',
+                   paddingLeft: '2rem',
                    opacity: 0.95
                  }}>
                    "Only those who master the ancient <span style={{ color: 'var(--gold-mid)', fontStyle: 'italic' }}>Algorithms</span> and <span style={{ color: 'var(--gold-mid)', fontStyle: 'italic' }}>Data Structures</span> shall engrave their names in the Hall of Scribes."
@@ -127,13 +128,13 @@ const SanctumMain = () => {
                   <>
                     <div style={{ position: 'absolute', bottom: '28%', width: '100%', textAlign: 'center' }}>
                       <h2 style={{ fontFamily: 'var(--font-display)', color: 'var(--gold-bright)', fontStyle: 'italic', fontWeight: 500, fontSize: '5rem', letterSpacing: '1px', textShadow: '0 4px 40px rgba(13,11,9,1), 0 0 20px rgba(13,11,9,0.9)', margin: 0 }}>
-                        The Colosseum is Open
+                        The Arena Awaits
                       </h2>
                     </div>
                     
                     <div style={{ position: 'absolute', bottom: '10%', width: '100%', display: 'flex', justifyContent: 'center' }}>
-                      <button className="gold-button" onClick={() => navigate('/colosseum')} style={{ fontSize: '1.2rem', padding: '1.2rem 4.5rem', textTransform: 'uppercase', letterSpacing: '4px', fontWeight: 600, boxShadow: '0 0 40px rgba(212,168,60,0.5)', borderRadius: '4px', background: 'linear-gradient(90deg, var(--gold-mid) 0%, var(--gold-bright) 100%)', color: '#0d0b09', border: 'none' }}>
-                        Start Coding
+                      <button className="gold-button" onClick={() => navigate('/sanctum')} style={{ fontSize: '1.2rem', padding: '1.2rem 4.5rem', textTransform: 'uppercase', letterSpacing: '4px', fontWeight: 600, boxShadow: '0 0 40px rgba(212,168,60,0.5)', borderRadius: '4px', background: 'linear-gradient(90deg, var(--gold-mid) 0%, var(--gold-bright) 100%)', color: '#0d0b09', border: 'none' }}>
+                        Enter Battleground
                       </button>
                     </div>
                   </>

@@ -5,6 +5,9 @@ import { ConfigProvider, theme } from 'antd';
 import AuthPage from './pages/AuthPage.jsx';
 import Profile from './pages/Profile.jsx';
 import Home from './pages/Home.jsx';
+import Sanctum from './pages/Sanctum.jsx';
+import TopicArena from './pages/TopicArena.jsx';
+import ProblemsPage from './pages/ProblemsPage.jsx';
 import GrainOverlay from './components/layout/GrainOverlay.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import { AuthProvider } from './hooks/useAuth.jsx';
@@ -35,9 +38,14 @@ function App() {
 
           <Route element={<ProtectedRoute />}>
             <Route path="/sanctum/:username" element={<Profile />} />
+            <Route path="/sanctum" element={<Sanctum />} />
+            <Route path="/arena" element={<TopicArena />} />
+            <Route path="/forge" element={<ProblemsPage />} />
           </Route>
 
           <Route path="/" element={<Home />} />
+          <Route path="/home" element={<Home />} />
+          <Route path="/*" element={<p>Error 404 Page Not Found</p>} />
         </Routes>
       </BrowserRouter>
       </AuthProvider>

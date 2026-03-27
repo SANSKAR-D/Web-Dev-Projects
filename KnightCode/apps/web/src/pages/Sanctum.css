@@ -1,20 +1,105 @@
+/* ── Sanctum Page ────────────────────────────────── */
 .sanctum {
-  padding: 4rem 2rem;
-  max-width: 1200px;
+  min-height: 100vh;
+  width: 100vw;
+  padding-top: 100px;
+  overflow-x: hidden;
+  position: relative;
+}
+
+.sanctum-bg-container {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: -1;
+}
+
+.sanctum-vignette {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: radial-gradient(circle at center, transparent 0%, rgba(13,11,9,0.92) 100%);
+  pointer-events: none;
+}
+
+.sanctum-content {
+  max-width: 960px;
   margin: 0 auto;
+  padding: 2rem;
+  position: relative;
+  z-index: 10;
 }
 
-.sanctum__title {
-  font-size: 3rem;
-  font-weight: 700;
+/* ── Header ────────────────────── */
+.sanctum-header {
+  text-align: center;
   margin-bottom: 1rem;
-  color: var(--gold-bright);
-  letter-spacing: -0.02em;
 }
 
-.sanctum__description {
-  font-size: 1.25rem;
-  color: var(--text-muted);
-  max-width: 600px;
-  line-height: 1.6;
+.sanctum-title {
+  font-family: var(--font-display, 'Playfair Display', serif);
+  font-size: 4rem;
+  color: var(--gold-bright, #E8C060);
+  font-style: italic;
+  text-shadow: 0 4px 25px rgba(0,0,0,0.9);
+  margin-bottom: 0.5rem;
+}
+
+.sanctum-subtitle {
+  font-family: var(--font-body, 'IM Fell English', serif);
+  font-size: 1.4rem;
+  color: var(--text-muted, #9A8060);
+}
+
+/* ── SVG Pathway ────────────────────── */
+.pathway-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ── SVG Tome Node Styles ────────────── */
+.tome-node-group {
+  cursor: pointer;
+}
+
+.tome-node-group:hover .tome-circle {
+  stroke: #E8C060;
+  stroke-width: 2;
+  filter: drop-shadow(0 0 15px rgba(232, 192, 96, 0.4));
+}
+
+.tome-node-group:hover .tome-glow-ring {
+  opacity: 0.6;
+  stroke-width: 3;
+}
+
+.tome-numeral-text {
+  font-family: var(--font-display, 'Playfair Display', serif);
+  font-size: 22px;
+  font-style: italic;
+  font-weight: 700;
+  fill: #E8C060;
+  pointer-events: none;
+}
+
+.tome-name-wrap {
+  font-family: var(--font-body, 'IM Fell English', serif);
+  font-size: 13px;
+  color: #F0E0B0;
+  text-align: center;
+  line-height: 1.25;
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+/* ── Responsive ────────────────────── */
+@media (max-width: 768px) {
+  .sanctum-title {
+    font-size: 2.5rem;
+  }
+
+  .sanctum-subtitle {
+    font-size: 1.1rem;
+  }
 }

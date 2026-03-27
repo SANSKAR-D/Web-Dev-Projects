@@ -4,6 +4,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/auth.routes');
+const problemsRoutes = require('./routes/problems.routes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -18,6 +19,7 @@ app.use(helmet());
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/problems', problemsRoutes);
 
 app.get('/', (req, res) => {
   res.send('KnightCode API is running...');
