@@ -61,7 +61,7 @@ const ProblemsPage = () => {
           transition={{ duration: 0.6 }}
           className="problems-header"
         >
-          <button className="back-btn" onClick={() => navigate(`/arena?topic=${encodeURIComponent(topic)}`)}>
+          <button className="back-btn" onClick={() => navigate(`/difficulty?topic=${encodeURIComponent(topic)}`)}>
             ← Back to Difficulty
           </button>
 

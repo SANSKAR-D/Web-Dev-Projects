@@ -79,7 +79,7 @@ const Sanctum = () => {
   }, []);
 
   const handleNodeClick = (tome) => {
-    navigate(`/arena?topic=${encodeURIComponent(tome.title)}`);
+    navigate(`/difficulty?topic=${encodeURIComponent(tome.title)}`);
   };
 
   return (
@@ -164,8 +164,8 @@ const Sanctum = () => {
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true, margin: '-40px' }}
                 transition={{
-                  duration: 0.5,
-                  delay: 0.06 * index,
+                  duration: 0.6,
+                  delay: 0.04 * index,
                   type: 'spring',
                   stiffness: 180,
                   damping: 14
