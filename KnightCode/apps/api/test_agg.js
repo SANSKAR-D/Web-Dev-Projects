@@ -1,6 +1,12 @@
+require('dotenv').config();
 const mongoose = require('mongoose');
 
-mongoose.connect('mongodb+srv://Sanskar:321321@cluster0.eray8jf.mongodb.net/database?appName=Cluster0')
+if (!process.env.MONGO_URI) {
+  console.error("MONGO_URI missing in .env");
+  process.exit(1);
+}
+
+mongoose.connect(process.env.MONGO_URI)
   .then(async () => {
     console.log('MongoDB Connected');
     

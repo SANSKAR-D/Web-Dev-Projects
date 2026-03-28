@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
 import client from '../api/client.js';
+import { useAuth } from '../hooks/useAuth.jsx';
 import './SolvePage.css';
 
 /* ── Language templates ─────────────────────────── */
@@ -34,6 +35,76 @@ const difficultyMeta = {
 };
 
 /* ── Helpers ─────────────────────────────────────── */
+const parseProblemHTML = (raw) => {
+  if (!raw) return { desc: '', example: '' };
+  
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(raw, 'text/html');
+  
+  let descText = '';
+  let exampleText = '';
+  let inExample = false;
+  let inInput = false;
+
+  Array.from(doc.body.childNodes).forEach(node => {
+     let tagName = node.nodeName.toUpperCase();
+     let text = node.textContent || '';
+     let lowerTxt = text.toLowerCase().trim();
+     
+     if (tagName === 'H3' || tagName === 'H2' || tagName === 'H4' || tagName === 'H1' || tagName === 'B' || tagName === 'STRONG') {
+         if (lowerTxt === 'problem statement' || lowerTxt === '<p> problem statement <p>' || lowerTxt === 'problem statement <p>') {
+             return; // skip label
+         } else if (lowerTxt === 'input' || lowerTxt.includes('input format')) {
+             inInput = true;
+             inExample = false;
+             return;
+         } else if (lowerTxt === 'output' || lowerTxt.includes('output format')) {
+             inInput = true;
+             inExample = false;
+             return;
+         } else if (lowerTxt === 'example' || lowerTxt === 'examples') {
+             inInput = false;
+             inExample = true;
+             return;
+         }
+     }
+     
+     if (tagName === 'P' && (lowerTxt === 'problem statement' || lowerTxt === '<p> problem statement <p>' || lowerTxt === 'problem statement <p>')) {
+         return; // skip
+     }
+
+     let parsedText = '';
+     if (tagName === 'P' || tagName === 'DIV') {
+         const clone = node.cloneNode(true);
+         clone.querySelectorAll('br').forEach(br => br.replaceWith('\n'));
+         parsedText = clone.textContent;
+     } else if (tagName === '#text') {
+         parsedText = text;
+     } else {
+         const clone = node.cloneNode(true);
+         if (clone.querySelectorAll) {
+            clone.querySelectorAll('br').forEach(br => br.replaceWith('\n'));
+         }
+         parsedText = clone.textContent;
+     }
+
+     if (inExample) {
+         if (parsedText.trim()) exampleText += parsedText + '\n\n';
+     } else if (!inInput) {
+         let clean = parsedText.replace(/<p>\s*problem statement\s*(<p>|<\/p>)?/gi, '');
+         if (clean.trim()) descText += clean + '\n\n';
+     }
+  });
+
+  if (!descText.trim() && !exampleText.trim()) {
+      let clean = doc.body.textContent || raw;
+      clean = clean.replace(/<p>\s*problem statement\s*(<p>|<\/p>)?/gi, '');
+      return { desc: clean.trim(), example: '' };
+  }
+
+  return { desc: descText.trim(), example: exampleText.trim() };
+};
+
 const monacoTheme = {
   base: 'vs-dark',
   inherit: true,
@@ -57,6 +128,9 @@ const monacoTheme = {
 
 /* ── Component ───────────────────────────────────── */
 const SolvePage = () => {
+  const { user } = useAuth();
+  const isAdmin = user?.email === 'sanskar.20253248@mnnit.ac.in';
+
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const id = searchParams.get('id') || '';
@@ -67,17 +141,25 @@ const SolvePage = () => {
   const [question, setQuestion] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState('description'); // 'description' | 'solution' | 'discussion'
+  const [activeTab, setActiveTab] = useState('description'); // 'description' | 'example' | 'solution' | 'discussion' | 'admin'
   const [lang, setLang] = useState('cpp');
   const [code, setCode] = useState(TEMPLATES.cpp);
+  const [submitting, setSubmitting] = useState(false);
+  const [result, setResult] = useState(null);
 
   /* Fetch full question */
-  useEffect(() => {
+  const fetchQuestionData = useCallback(() => {
     if (!id || !topic || !difficulty) return;
     setLoading(true);
     client.get('/problems/question', { params: { id, topic, difficulty } })
       .then(res => {
-        setQuestion(res.data);
+        const data = res.data;
+        if (data && data.description) {
+            const parsed = parseProblemHTML(data.description);
+            data.description = parsed.desc;
+            data.example = parsed.example || data.example;
+        }
+        setQuestion(data);
         // Seed editor with solution language if available
         const solLang = res.data?.solution?.language;
         if (solLang && TEMPLATES[solLang]) {
@@ -89,6 +171,10 @@ const SolvePage = () => {
       .finally(() => setLoading(false));
   }, [id, topic, difficulty]);
 
+  useEffect(() => {
+    fetchQuestionData();
+  }, [fetchQuestionData]);
+
   const handleMount = useCallback((editor, monaco) => {
     monaco.editor.defineTheme('codex', monacoTheme);
     monaco.editor.setTheme('codex');
@@ -98,6 +184,26 @@ const SolvePage = () => {
     const l = e.target.value;
     setLang(l);
     setCode(TEMPLATES[l] || '');
+  };
+
+  const handleSubmit = async () => {
+    if (!id || !topic || !difficulty) return;
+    setSubmitting(true);
+    setResult(null);
+    try {
+      const res = await client.post('/problems/submit', {
+        id,
+        topic,
+        difficulty,
+        language: lang,
+        code
+      });
+      setResult(res.data);
+    } catch (err) {
+      setResult({ overallStatus: 'Error', message: err.response?.data?.message || 'Submission failed.' });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   /* ── Render ── */
@@ -116,6 +222,12 @@ const SolvePage = () => {
               Description
             </button>
             <button
+              className={`solve-tab-btn ${activeTab === 'example' ? 'active' : ''}`}
+              onClick={() => setActiveTab('example')}
+            >
+              Example
+            </button>
+            <button
               className={`solve-tab-btn ${activeTab === 'solution' ? 'active' : ''}`}
               onClick={() => setActiveTab('solution')}
             >
@@ -127,6 +239,15 @@ const SolvePage = () => {
             >
               Discussion
             </button>
+            {isAdmin && (
+               <button
+                 className={`solve-tab-btn ${activeTab === 'admin' ? 'active' : ''}`}
+                 onClick={() => setActiveTab('admin')}
+                 style={{ color: activeTab === 'admin' ? '#C05A4A' : '#A05A4A', borderBottomColor: activeTab === 'admin' ? '#C05A4A' : 'transparent' }}
+               >
+                 ⚙ Edit
+               </button>
+            )}
           </div>
 
           {/* Content */}
@@ -137,11 +258,15 @@ const SolvePage = () => {
               <div className="solve-loading" style={{ color: '#C05A4A' }}>{error}</div>
             ) : activeTab === 'description' ? (
               <DescriptionTab question={question} meta={meta} />
+            ) : activeTab === 'example' ? (
+              <ExampleTab question={question} />
             ) : activeTab === 'solution' ? (
               <SolutionTab question={question} />
-            ) : (
+            ) : activeTab === 'discussion' ? (
               <DiscussionTab />
-            )}
+            ) : activeTab === 'admin' && isAdmin ? (
+              <AdminEditTab question={question} topic={topic} difficulty={difficulty} id={id} onRefresh={fetchQuestionData} />
+            ) : null}
           </div>
         </div>
 
@@ -179,6 +304,33 @@ const SolvePage = () => {
           </div>
 
           <div className="solve-editor-footer">
+            {result && (
+              <div className={`solve-result-overlay ${result.overallStatus === 'Accepted' ? 'success' : 'failure'}`}>
+                <div className="solve-result-header">
+                  <span className="solve-result-status">{result.overallStatus}</span>
+                  <button className="solve-result-close" onClick={() => setResult(null)}>✕</button>
+                </div>
+                {result.testResults ? (
+                  <div className="solve-test-results">
+                    {result.testResults.map((tr, i) => (
+                      <div key={i} className={`solve-test-item ${tr.status === 'Accepted' ? 'passed' : 'failed'}`}>
+                        <span>Test Case {i + 1}: {tr.status}</span>
+                        {!tr.hidden && tr.status !== 'Accepted' && (
+                          <div className="solve-test-details">
+                            <div>Input: {tr.input}</div>
+                            <div>Expected: {tr.expected}</div>
+                            <div>Actual: {tr.actual}</div>
+                          </div>
+                        )}
+                        {tr.hidden && <span> (Hidden)</span>}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="solve-result-message">{result.message}</div>
+                )}
+              </div>
+            )}
             {question?.link && (
               <a
                 href={question.link}
@@ -195,7 +347,13 @@ const SolvePage = () => {
             >
               ← Back
             </button>
-            <button className="solve-btn solve-btn-submit">Submit</button>
+            <button 
+              className="solve-btn solve-btn-submit" 
+              onClick={handleSubmit}
+              disabled={submitting}
+            >
+              {submitting ? 'Running…' : 'Submit'}
+            </button>
           </div>
         </div>
       </div>
@@ -217,7 +375,9 @@ const DescriptionTab = ({ question, meta }) => (
     <hr className="solve-divider" />
 
     <p className="solve-section-label">Problem Statement</p>
-    <p className="solve-description">{question?.description || 'No description available.'}</p>
+    <div className="solve-description" style={{ whiteSpace: 'pre-wrap' }}>
+      {question?.description || 'No description available.'}
+    </div>
 
     {question?.constraints?.length > 0 && (
       <>
@@ -230,27 +390,44 @@ const DescriptionTab = ({ question, meta }) => (
         </ul>
       </>
     )}
+  </>
+);
 
-    {question?.testCases?.find(tc => !tc.hidden) && (
+/* ── Example sub-component ─────────────────────── */
+const ExampleTab = ({ question }) => (
+  <>
+    {question?.example ? (
+      <>
+        <p className="solve-section-label">Example Scenario</p>
+        <div className="solve-description" style={{ whiteSpace: 'pre-wrap', fontFamily: "'Fira Code', 'Courier New', monospace", background: '#181410', padding: '16px', borderRadius: '8px', border: '1px solid #3A2E1A' }}>
+          {question.example}
+        </div>
+      </>
+    ) : (
+      <p style={{ color: '#6A5A3A', fontFamily: 'IM Fell English, serif', fontStyle: 'italic' }}>
+        No specific example scenario found.
+      </p>
+    )}
+    
+    {question?.testCases?.length > 0 && (
       <>
         <hr className="solve-divider" />
-        <p className="solve-section-label">Example</p>
-        {(() => {
-          const tc = question.testCases.find(tc => !tc.hidden);
-          return (
-            <div className="solve-testcase">
-              <div className="solve-testcase-label">Example 1</div>
+        <p className="solve-section-label">Sample Data</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {question.testCases.filter(tc => !tc.hidden).map((tc, index) => (
+            <div key={index} className="solve-testcase">
+              <div className="solve-testcase-label">Sample {index + 1}</div>
               <div className="solve-testcase-row">
                 <span className="solve-testcase-key">Input:</span>
                 <span className="solve-testcase-val">{String(tc.input)}</span>
               </div>
               <div className="solve-testcase-row">
-                <span className="solve-testcase-key">Expected Output:</span>
+                <span className="solve-testcase-key">Expected:</span>
                 <span className="solve-testcase-val">{String(tc.expectedOutput)}</span>
               </div>
             </div>
-          );
-        })()}
+          ))}
+        </div>
       </>
     )}
   </>
@@ -388,5 +565,107 @@ const DiscussionTab = () => (
     </p>
   </>
 );
+
+/* ── Admin Edit sub-component ───────────────────── */
+const AdminEditTab = ({ question, topic, difficulty, id, onRefresh }) => {
+  const [desc, setDesc] = useState(question?.description || '');
+  const [example, setExample] = useState(question?.example || '');
+  const [constraints, setConstraints] = useState(
+    (question?.constraints || []).join('\n')
+  );
+  const [testCases, setTestCases] = useState(JSON.parse(JSON.stringify(question?.testCases || [])));
+  const [solution, setSolution] = useState(question?.solution || { language: 'cpp', timeComplexity: '', spaceComplexity: '', explanation: '', code: '' });
+  const [saving, setSaving] = useState(false);
+
+  // When question changes (due to refresh), update local state
+  useEffect(() => {
+    if (question) {
+      setDesc(question.description || '');
+      setExample(question.example || '');
+      setConstraints((question.constraints || []).join('\n'));
+      setTestCases(JSON.parse(JSON.stringify(question.testCases || [])));
+      setSolution(question.solution || { language: 'cpp', timeComplexity: '', spaceComplexity: '', explanation: '', code: '' });
+    }
+  }, [question]);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const updates = {
+         description: desc,
+         example,
+         constraints: constraints.split('\n').map(c => c.trim()).filter(c => c),
+         testCases,
+         solution
+      };
+      await client.put('/problems/question', { id, topic, difficulty, updates });
+      alert('Problem Updated! ⚔️');
+      onRefresh();
+    } catch (err) {
+      alert('Error saving. 💀');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const updateTc = (index, field, val) => {
+    const newTc = [...testCases];
+    newTc[index][field] = val;
+    setTestCases(newTc);
+  };
+  const addTc = () => setTestCases([...testCases, { input: '', expectedOutput: '', hidden: false }]);
+  const removeTc = (index) => setTestCases(testCases.filter((_, i) => i !== index));
+
+  return (
+    <div className="admin-edit-container">
+       <h2 style={{ color: '#D4A83C', marginTop: 0 }}>⚙️ Reforge Problem</h2>
+       <p className="solve-section-label">Raw Description (HTML/Text)</p>
+       <textarea value={desc} onChange={e => setDesc(e.target.value)} className="admin-textarea" rows={8} />
+
+       <p className="solve-section-label">Example Scenario</p>
+       <textarea value={example} onChange={e => setExample(e.target.value)} className="admin-textarea" rows={6} />
+
+       <p className="solve-section-label">Constraints (One per line)</p>
+       <textarea value={constraints} onChange={e => setConstraints(e.target.value)} className="admin-textarea" rows={4} />
+
+       <hr className="solve-divider" />
+       <p className="solve-section-label">Test Cases</p>
+       {testCases.map((tc, i) => (
+         <div key={i} className="admin-tc-card">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+               <span style={{color: '#D4A83C', fontWeight: 'bold'}}>Case {i+1}</span>
+               <button onClick={() => removeTc(i)} style={{ background: '#C05A4A', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', padding: '4px 8px' }}>✕ Remove</button>
+            </div>
+            <label>Input:</label>
+            <textarea value={tc.input || ''} onChange={e => updateTc(i, 'input', e.target.value)} className="admin-textarea" rows={2} />
+            <label>Expected Output:</label>
+            <textarea value={tc.expectedOutput || ''} onChange={e => updateTc(i, 'expectedOutput', e.target.value)} className="admin-textarea" rows={2} />
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px', cursor: 'pointer' }}>
+               <input type="checkbox" checked={tc.hidden || false} onChange={e => updateTc(i, 'hidden', e.target.checked)} />
+               Hidden Test Case
+            </label>
+         </div>
+       ))}
+       <button onClick={addTc} className="solve-tab-btn" style={{ marginBottom: '20px', border: '1px solid #D4A83C', width: 'fit-content' }}>+ Add Testcase</button>
+
+       <hr className="solve-divider" />
+       <p className="solve-section-label">Optimal Solution Data</p>
+       <label style={{color: '#8A7A5A', fontSize: '0.8rem'}}>Language:</label>
+       <input value={solution.language || ''} onChange={e => setSolution({...solution, language: e.target.value})} className="admin-input" />
+       <label style={{color: '#8A7A5A', fontSize: '0.8rem'}}>Time Complexity:</label>
+       <input value={solution.timeComplexity || ''} onChange={e => setSolution({...solution, timeComplexity: e.target.value})} className="admin-input" />
+       <label style={{color: '#8A7A5A', fontSize: '0.8rem'}}>Space Complexity:</label>
+       <input value={solution.spaceComplexity || ''} onChange={e => setSolution({...solution, spaceComplexity: e.target.value})} className="admin-input" />
+       <label style={{color: '#8A7A5A', fontSize: '0.8rem'}}>Explanation:</label>
+       <textarea value={solution.explanation || ''} onChange={e => setSolution({...solution, explanation: e.target.value})} className="admin-textarea" rows={4} />
+       <label style={{color: '#8A7A5A', fontSize: '0.8rem'}}>Code:</label>
+       <textarea value={solution.code || ''} onChange={e => setSolution({...solution, code: e.target.value})} className="admin-textarea" rows={8} style={{ fontFamily: 'monospace' }} />
+
+       <button onClick={handleSave} disabled={saving} className="solve-btn solve-btn-submit" style={{ width: '100%', marginTop: '30px', padding: '12px' }}>
+         {saving ? 'Forging...' : 'Save All Changes'}
+       </button>
+    </div>
+  );
+};
 
 export default SolvePage;

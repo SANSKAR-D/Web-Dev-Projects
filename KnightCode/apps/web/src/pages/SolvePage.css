@@ -335,3 +335,130 @@
   color: #7A6A4A;
   font-style: italic;
 }
+
+/* ── Submission Result Overlay ───────────────────────── */
+.solve-result-overlay {
+  position: absolute;
+  bottom: 60px;
+  right: 14px;
+  left: 14px;
+  background: #12100E;
+  border: 1px solid #2E2718;
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 -10px 30px rgba(0,0,0,0.8);
+  animation: slideUp 0.3s ease-out;
+  z-index: 100;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.solve-result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.solve-result-status {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.25rem;
+  font-weight: bold;
+}
+
+.solve-result-overlay.success .solve-result-status { color: #6DBF8A; }
+.solve-result-overlay.failure .solve-result-status { color: #C05A4A; }
+
+.solve-result-close {
+  background: transparent;
+  border: none;
+  color: #7A6A4A;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.solve-test-results {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.solve-test-item {
+  background: #181410;
+  border: 1px solid #2E2718;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-family: 'IM Fell English', serif;
+  font-size: 0.9rem;
+}
+
+.solve-test-item.passed { border-left: 3px solid #6DBF8A; }
+.solve-test-item.failed { border-left: 3px solid #C05A4A; }
+
+.solve-test-details {
+  margin-top: 8px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.82rem;
+  color: #8A7A5A;
+  background: #0F0D0B;
+  padding: 8px;
+  border-radius: 4px;
+}
+
+.solve-result-message {
+  color: #C05A4A;
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+}
+
+/* ── Admin Edit Mode ────────────────────────────────── */
+.admin-edit-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-bottom: 20px;
+}
+
+.admin-textarea, .admin-input {
+  background: #0D0B09;
+  border: 1px solid #3A2E1A;
+  color: #D4C8A0;
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 0.95rem;
+  padding: 10px;
+  border-radius: 6px;
+  width: 100%;
+  resize: vertical;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.admin-textarea:focus, .admin-input:focus {
+  border-color: #D4A83C;
+}
+
+.admin-tc-card {
+  background: #181410;
+  border: 1px solid #2E2718;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+}
+
+.admin-tc-card label {
+  font-family: 'IM Fell English', serif;
+  font-size: 0.8rem;
+  color: #8A7A5A;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+

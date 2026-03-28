@@ -1,0 +1,32 @@
+\begin{problem}{Love percentage}{standard input}{standard output}{1 second}{256 megabytes}
+
+You are tasked with creating a "Love Calculator" to determine the love percentage between two people based on their names.
+
+​The love percentage is calculated using the following rules:
+
+​Take both names and combine them into a single string.
+​Count the total number of times the letters in the word "TRUE" ('t', 'r', 'u', 'e') appear in the combined string. This will be the first digit(s) of the percentage.
+
+​Count the total number of times the letters in the word "LOVE" ('l', 'o', 'v', 'e') appear in the combined string. This will be the second digit(s) of the percentage.
+
+​Concatenate these two counts to form an integer. For example, if the "TRUE" count is 5 and the "LOVE" count is 3, the percentage is 53\%.
+
+​If the resulting concatenated number is greater than 100, cap the final percentage at 100\%.
+
+
+\InputFile
+​A single line containing two space-separated strings, name1 and name2.
+
+\OutputFile
+​Print a single integer representing the calculated love percentage.
+
+
+\Note
+The counting should be case-insensitive (e.g., 'T' and 't' both count towards the "TRUE" score).
+
+1 <= length of name1, name2 <= 10^4.
+
+Both strings will consist only of uppercase and lowercase English letters (no spaces or special characters).
+
+\end{problem}
+

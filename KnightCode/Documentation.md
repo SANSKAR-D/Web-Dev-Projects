@@ -123,6 +123,55 @@ Fetching a full topic doc over the network was initially taking **~4.5 seconds**
 
 ---
 
+## 🔒 Admin Authorization & Security
+
+To maintain platform integrity, KnightCode implements a strict role-based access control (RBAC) strategy focused on isolating potentially destructive actions (editing problem parameters) and sensitive data (hidden test cases) to administrative users.
+
+### 1. Middleware Protections
+Authentication middleware is defined in `apps/api/middleware/auth.middleware.js`:
+- **`protect`**: Blocks completely unauthenticated requests, decoding the `Bearer` JWT to verify legitimate active users.
+- **`optionalProtect`**: A soft-guard that does not throw 401 Unauthorized errors if a token is missing, but *will* attach the `req.user` payload if the user happens to provide a valid token. This is used in public routes that have privileged internal branches (e.g., getting a problem where admins see more data than guests).
+- **`adminProtect`**: A hard-guard that acts identically to `protect`, but subsequently enforces that `req.user.email` rigidly matches the authorized admin address (`sanskar.20253248@mnnit.ac.in` by default). Rejecting any mismatch returns a `403 Forbidden` response.
+
+### 2. Frontend Admin GUI
+When parsing a user's logged-in identity via React Context (`useAuth`), components like `SolvePage.jsx` branch their rendering payload conditionally.
+- If the `user` is flagged as an admin, the UI activates a `⚙ Edit` tab allowing complete database manipulation without writing script injections.
+- Valid admins have full read/write/delete ability over problem components: Description (raw HTML injection), constraints list mapped out line-by-line, and Test Cases.
+
+### 3. Data-Scrubbing Security
+For non-admin requests fetching `GET /api/problems/question`, the backend aggressively scrubs `hidden` arrays. By deep-cloning the Mongoose response (`JSON.parse(JSON.stringify(question))`), the API actively mutates hidden test cases to return `input: 'Hidden', expectedOutput: 'Hidden'` prior to transmission. This prevents tech-savvy clients from intercepting network fetches via DevTools to cheat.
+
+---
+
+## ⚙️ Code Judge Execution Pipeline
+
+KnightCode features a deeply integrated, isolated Code Judge execution engine using Node.js child processes and Docker containers rather than relying on external web APIs like Judge0. 
+
+### 1. The Executor (`apps/api/judge/executor.js`)
+The `Executor` class is instantiated per-submission and handles local file manipulation securely using the `os.tmpdir()`. 
+- **Temporary Workspaces**: It isolates concurrent submissions by dynamically constructing ephemeral folders labeled `knightcode_judge_<timestamp>`. 
+- **Language Compilation**: If attempting to execute typed languages like C++, it mounts this ephemeral directory volume using `docker run -v` into a temporary `knightcode-judge` container executing `g++ solution.cpp -O3 -std=c++17`. Compilation errors catch via the standard `code === 1` child_process close event.
+- **Interpreted Languages**: Python and Javascript bypass compilation entirely and write directly to `solution.py/js`.
+
+### 2. Sandbox Data Flow
+When a user targets `POST /api/problems/submit`, the workflow operates as follows:
+1. **Source Generation**: Raw editor `code` strings are flushed via `fs.writeFileSync()` to the ephemeral workspace.
+2. **Container Ignition**: The runtime spawns using `child_process.spawn`.
+   - **Isolation Flags**: `--net=none` (disables internet access to prevent reverse shells), `--cpus=0.5` (hard throttles CPU cycles), and `--memory=256m` (blocks RAM overutilization memory leaks).
+   - **User Permissions**: `--user judgeuser` operates without root authority, disabling dangerous filesystem mutations inside the kernel namespace.
+3. **Execution Loop**: The loop maps across the problem's predefined Database Testcases.
+   - For every iteration, it pipes the `testCase.input` string payload into the container via standard input streams (`child.stdin.write`).
+   - Standard output payloads are collected asynchronously in `child.stdout.on('data')`.
+4. **Time Limiter**: To prevent infinite loop locking `while(true)`, a rigid Javascript `setTimeout` bounds execution to 2.0 seconds (`timeLimit = 2000`). Breaching this timer sends `child.kill()` and labels the status **Time Limit Exceeded**.
+5. **Evaluation**: Expected matching occurs sequentially for all returned data frames. 
+   - Strict adherence returns an overarching **Accepted**.
+   - Mismatched algorithms return **Wrong Answer**.
+
+### 3. Cleanup Protocol
+The `cleanup()` lifecycle fires unconditionally utilizing `fs.rmSync(this.tempDir, { recursive: true })` — erasing the source files, compiled Linux binaries, and cached folder frames.
+
+---
+
 ## API Endpoints
 
 | Method | Route | Description |

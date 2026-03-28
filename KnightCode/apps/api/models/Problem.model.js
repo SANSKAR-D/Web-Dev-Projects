@@ -7,6 +7,7 @@ const questionSchema = new mongoose.Schema({
   acceptance: String,
   link: String,
   description: String,
+  example: String,
   constraints: [mongoose.Schema.Types.Mixed],
   testCases: [mongoose.Schema.Types.Mixed],
   solution: mongoose.Schema.Types.Mixed,
