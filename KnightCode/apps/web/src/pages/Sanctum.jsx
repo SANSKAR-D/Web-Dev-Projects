@@ -11,7 +11,7 @@ const tomes = [
   { id: 3, numeral: 'III', title: 'Hash Table' },
   { id: 4, numeral: 'IV', title: 'Two Pointers' },
   { id: 5, numeral: 'V', title: 'Sliding Window' },
-  { id: 6, numeral: 'VI', title: 'Stack' },
+  { id: 6, numeral: 'VI', title: 'Stack & Queue' },
   { id: 7, numeral: 'VII', title: 'Linked List' },
   { id: 8, numeral: 'VIII', title: 'Binary Search' },
   { id: 9, numeral: 'IX', title: 'Sorting' },

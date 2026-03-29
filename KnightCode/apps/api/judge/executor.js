@@ -103,22 +103,45 @@ class Executor {
       const binPath = await this.compile(language, code);
       const results = [];
       let allPassed = true;
+      const CHUNK_SIZE = 5; // Run 5 test cases in parallel
 
-      for (const testCase of question.testCases) {
-        const result = await this.run(language, binPath || code, code, testCase.input, 2000);
+      // Process testcases in batches
+      for (let i = 0; i < question.testCases.length; i += CHUNK_SIZE) {
+        const chunk = question.testCases.slice(i, i + CHUNK_SIZE);
         
-        const passed = result.status === 'Success' && result.output === testCase.expectedOutput;
-        results.push({
-          input: testCase.input,
-          expected: testCase.expectedOutput,
-          actual: result.output,
-          status: passed ? 'Accepted' : (result.status === 'Success' ? 'Wrong Answer' : result.status),
-          hidden: testCase.hidden
+        const chunkPromises = chunk.map(async (testCase) => {
+          const result = await this.run(language, binPath || code, code, testCase.input, 2000);
+          const passed = result.status === 'Success' && result.output === testCase.expectedOutput;
+          
+          return {
+            input: testCase.input,
+            expected: testCase.expectedOutput,
+            actual: result.output,
+            status: passed ? 'Accepted' : (result.status === 'Success' ? 'Wrong Answer' : result.status),
+            hidden: testCase.hidden,
+            passed: passed
+          };
         });
 
-        if (!passed) {
-          allPassed = false;
-          // You could break here for early exit but let's run all for feedback
+        const chunkResults = await Promise.all(chunkPromises);
+        
+        for (const res of chunkResults) {
+          results.push({
+             input: res.input,
+             expected: res.expected,
+             actual: res.actual,
+             status: res.status,
+             hidden: res.hidden
+          });
+
+          if (!res.passed) {
+            allPassed = false;
+          }
+        }
+
+        // Early exit: stop running subsequent testcases if any failed in the current chunk
+        if (!allPassed) {
+          break;
         }
       }
 

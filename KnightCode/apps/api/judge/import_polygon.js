@@ -29,6 +29,10 @@ const TAG_MAP = {
   'graphs': 'Graph',
   'graph': 'Graph',
   'trees': 'Tree',
+  'queue': 'Stack & Queue',
+  'stack': 'Stack & Queue',
+  'stacks': 'Stack & Queue',
+  'deque': 'Stack & Queue',
   'tree': 'Tree',
   'two pointers': 'Two Pointers',
   'sliding window': 'Sliding Window',
@@ -50,7 +54,7 @@ async function processPolygonDirectory(sourceDir) {
   
   // Determine Topic & Difficulty
   const topicName = TAG_MAP[tags[0]?.toLowerCase()] || 'Array';
-  const difficultyLevel = 'Easy'; // Defaulting to Medium
+  const difficultyLevel = 'Hard'; // Defaulting to Medium
   
   // 2. Parse problem.tex for description
   const texPath = path.join(sourceDir, 'statements/english/problem.tex');
@@ -61,11 +65,11 @@ async function processPolygonDirectory(sourceDir) {
   if (fs.existsSync(texPath)) {
     const texContent = fs.readFileSync(texPath, 'utf-8');
     
-    // Updated robust regexes to grab content. Note the optional grouping handling.
-    const statementMatch = texContent.match(/\\begin\{problem\}\{.*?\}.*?\n([\s\S]*?)(?:\\InputFile)/s);
-    const inputMatch = texContent.match(/\\InputFile\n([\s\S]*?)(?:\\OutputFile)/s);
-    const outputMatch = texContent.match(/\\OutputFile\n([\s\S]*?)(?:\\Note|\\end\{problem\})/s);
-    const noteMatch = texContent.match(/\\Note\n([\s\S]*?)(?:\\end\{problem\})/s);
+    // Updated robust regexes to grab content using positive lookaheads for optional sections.
+    const statementMatch = texContent.match(/\\begin\{problem\}\{.*?\}.*?\n([\s\S]*?)(?=\\InputFile|\\OutputFile|\\Note|\\end\{problem\})/s);
+    const inputMatch = texContent.match(/\\InputFile\n([\s\S]*?)(?=\\OutputFile|\\Note|\\end\{problem\})/s);
+    const outputMatch = texContent.match(/\\OutputFile\n([\s\S]*?)(?=\\Note|\\end\{problem\})/s);
+    const noteMatch = texContent.match(/\\Note\n([\s\S]*?)(?=\\end\{problem\})/s);
 
     const cleanText = (text) => text ? text.replace(/\\%/g, '%').trim() : '';
 
@@ -115,15 +119,32 @@ async function processPolygonDirectory(sourceDir) {
   }
 
   const testCases = [];
+  let totalTestSize = 0;
+  const sizeLimit = 2 * 1024 * 1024; // 2MB limit per problem to prevent MongoDB BSON RangeError on Topic saves
+  
   if (fs.existsSync(testsDir)) {
-    const files = fs.readdirSync(testsDir).sort();
+    const files = fs.readdirSync(testsDir).sort((a,b) => {
+      // Sort numerically if files are named like 1, 2, 3 so we get smaller/earlier test cases first
+      const numA = parseInt(a, 10);
+      const numB = parseInt(b, 10);
+      return (Number.isNaN(numA) || Number.isNaN(numB)) ? a.localeCompare(b) : numA - numB;
+    });
+    
     for (const file of files) {
       if (!file.includes('.') && fs.existsSync(path.join(testsDir, file + '.a'))) {
-        const input = fs.readFileSync(path.join(testsDir, file), 'utf-8');
-        const output = fs.readFileSync(path.join(testsDir, file + '.a'), 'utf-8');
+        const input = fs.readFileSync(path.join(testsDir, file), 'utf-8').trim();
+        const output = fs.readFileSync(path.join(testsDir, file + '.a'), 'utf-8').trim();
+        
+        const currentSize = Buffer.byteLength(input, 'utf-8') + Buffer.byteLength(output, 'utf-8');
+        if (totalTestSize + currentSize > sizeLimit) {
+          console.warn(`Skipping remaining test cases for ${title}: Exceeded 2MB limit (BSON Error mitigation)`);
+          break;
+        }
+        totalTestSize += currentSize;
+        
         testCases.push({
-          input: input.trim(),
-          expectedOutput: output.trim(),
+          input: input,
+          expectedOutput: output,
           hidden: testCases.length >= 2 // Mark others as hidden
         });
       }
@@ -181,7 +202,15 @@ async function processPolygonDirectory(sourceDir) {
     generatedAt: new Date()
   };
   
-  diffSection.questions.push(newQuestion);
+  const existingIndex = diffSection.questions.findIndex(q => q.title === title);
+  if (existingIndex >= 0) {
+    console.log(`Updating existing question: ${title}`);
+    newQuestion.serialNo = diffSection.questions[existingIndex].serialNo;
+    diffSection.questions[existingIndex] = newQuestion;
+  } else {
+    diffSection.questions.push(newQuestion);
+  }
+  
   await topicDoc.save();
   
   console.log(`Successfully imported: ${title} into ${topicName} [${difficultyLevel}]`);
