@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
 import client from '../api/client.js';
@@ -146,6 +147,7 @@ const SolvePage = () => {
   const [code, setCode] = useState(TEMPLATES.cpp);
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState(null);
+  const [isSolutionRevealed, setIsSolutionRevealed] = useState(false);
 
   // New Custom Test Runner States
   const [customTestCases, setCustomTestCases] = useState([{ input: '' }]);
@@ -168,6 +170,7 @@ const SolvePage = () => {
             data.example = parsed.example || data.example;
         }
         setQuestion(data);
+        setIsSolutionRevealed(false);
         // Seed custom testcases
         if (data && data.testCases) {
            const sampleTcs = data.testCases.filter(tc => !tc.hidden).map(tc => ({ input: String(tc.input || '') }));
@@ -296,7 +299,11 @@ const SolvePage = () => {
             ) : activeTab === 'example' ? (
               <ExampleTab question={question} />
             ) : activeTab === 'solution' ? (
-              <SolutionTab question={question} />
+              <SolutionTab 
+                question={question} 
+                revealed={isSolutionRevealed} 
+                onReveal={() => setIsSolutionRevealed(true)} 
+              />
             ) : activeTab === 'discussion' ? (
               <DiscussionTab />
             ) : activeTab === 'admin' && isAdmin ? (
@@ -333,103 +340,120 @@ const SolvePage = () => {
                 renderWhitespace: 'selection',
                 tabSize: 4,
                 wordWrap: 'off',
+                automaticLayout: true,
                 padding: { top: 12, bottom: 12 },
               }}
             />
           </div>
 
-          {showConsole && (
-            <div className="solve-testcases-console" style={{ height: '300px' }}>
-              <div className="solve-console-header">
-                <button
-                  className={`solve-console-tab ${consoleTab === 'testcases' ? 'active' : ''}`}
-                  onClick={() => setConsoleTab('testcases')}
+          <AnimatePresence>
+            {showConsole && (
+              <motion.div 
+                className="solve-testcases-console" 
+                initial={{ height: 0 }}
+                animate={{ height: '300px' }}
+                exit={{ height: 0 }}
+                transition={{ duration: 0.2, ease: 'easeOut' }}
+              >
+                <motion.div
+                  initial={{ y: 300 }}
+                  animate={{ y: 0 }}
+                  exit={{ y: 300 }}
+                  transition={{ duration: 0.2, ease: 'easeOut' }}
+                  style={{ height: '300px' }}
                 >
-                  Testcases
-                </button>
-                <button
-                  className={`solve-console-tab ${consoleTab === 'result' ? 'active' : ''}`}
-                  onClick={() => setConsoleTab('result')}
-                >
-                  Run Result
-                </button>
-                <button className="solve-console-close" onClick={() => setShowConsole(false)}>✕</button>
-              </div>
-              <div className="solve-console-body">
-                {consoleTab === 'testcases' ? (
-                  <div>
-                    <div className="solve-tc-tabs">
-                      {customTestCases.map((_, i) => (
-                        <button
-                          key={i}
-                          className={`solve-tc-tab ${activeTestCaseIndex === i ? 'active' : ''}`}
-                          onClick={() => setActiveTestCaseIndex(i)}
-                        >
-                          Case {i + 1}
-                        </button>
-                      ))}
-                      {customTestCases.length < 8 && (
-                        <button
-                          className="solve-tc-tab-add"
-                          onClick={() => {
-                            setCustomTestCases([...customTestCases, { input: '' }]);
-                            setActiveTestCaseIndex(customTestCases.length);
-                          }}
-                        >
-                          + Add
-                        </button>
-                      )}
-                    </div>
-                    {customTestCases.length > 0 && customTestCases[activeTestCaseIndex] !== undefined && (
-                      <textarea
-                        className="solve-tc-textarea"
-                        value={customTestCases[activeTestCaseIndex].input}
-                        onChange={(e) => {
-                          const newTcs = [...customTestCases];
-                          newTcs[activeTestCaseIndex].input = e.target.value;
-                          setCustomTestCases(newTcs);
-                        }}
-                        placeholder="Enter custom input here..."
-                      />
-                    )}
+                  <div className="solve-console-header">
+                    <button
+                      className={`solve-console-tab ${consoleTab === 'testcases' ? 'active' : ''}`}
+                      onClick={() => setConsoleTab('testcases')}
+                    >
+                      Testcases
+                    </button>
+                    <button
+                      className={`solve-console-tab ${consoleTab === 'result' ? 'active' : ''}`}
+                      onClick={() => setConsoleTab('result')}
+                    >
+                      Run Result
+                    </button>
+                    <button className="solve-console-close" onClick={() => setShowConsole(false)}>✕</button>
                   </div>
-                ) : (
-                  <div>
-                    {runningTest ? (
-                      <div className="solve-loading">Scribing Runes...</div>
-                    ) : runTestResult ? (
+                  <div className="solve-console-body">
+                    {consoleTab === 'testcases' ? (
                       <div>
-                        {runTestResult.overallStatus === 'Error' ? (
-                           <div className="solve-run-status error">{runTestResult.message}</div>
-                        ) : (
-                           <>
-                             <div className="solve-run-status success">Execution Completed</div>
-                             {runTestResult.testResults && runTestResult.testResults.map((tr, i) => (
-                               <div key={i} className="solve-run-tc-result">
-                                 <span className="solve-run-label">Case {i + 1}</span>
-                                 <div className="solve-run-box">
-                                   <span style={{color: '#8A7A5A'}}>Input:</span><br/>
-                                   {tr.input}
-                                 </div>
-                                 <div className="solve-run-box">
-                                   <span style={{color: '#8A7A5A'}}>Output:</span><br/>
-                                   {tr.actual}
-                                 </div>
-                               </div>
-                             ))}
-                           </>
+                        <div className="solve-tc-tabs">
+                          {customTestCases.map((_, i) => (
+                            <button
+                              key={i}
+                              className={`solve-tc-tab ${activeTestCaseIndex === i ? 'active' : ''}`}
+                              onClick={() => setActiveTestCaseIndex(i)}
+                            >
+                              Case {i + 1}
+                            </button>
+                          ))}
+                          {customTestCases.length < 8 && (
+                            <button
+                              className="solve-tc-tab-add"
+                              onClick={() => {
+                                setCustomTestCases([...customTestCases, { input: '' }]);
+                                setActiveTestCaseIndex(customTestCases.length);
+                              }}
+                            >
+                              + Add
+                            </button>
+                          )}
+                        </div>
+                        {customTestCases.length > 0 && customTestCases[activeTestCaseIndex] !== undefined && (
+                          <textarea
+                            className="solve-tc-textarea"
+                            value={customTestCases[activeTestCaseIndex].input}
+                            onChange={(e) => {
+                              const newTcs = [...customTestCases];
+                              newTcs[activeTestCaseIndex].input = e.target.value;
+                              setCustomTestCases(newTcs);
+                            }}
+                            placeholder="Enter custom input here..."
+                          />
                         )}
                       </div>
                     ) : (
-                      <div className="solve-console-empty">
-                        Click "Run" to test your code against the custom testcases.
+                      <div>
+                        {runningTest ? (
+                          <div className="solve-loading">Scribing Runes...</div>
+                        ) : runTestResult ? (
+                          <div>
+                            {runTestResult.overallStatus === 'Error' ? (
+                               <div className="solve-run-status error">{runTestResult.message}</div>
+                            ) : (
+                               <>
+                                 <div className="solve-run-status success">Execution Completed</div>
+                                 {runTestResult.testResults && runTestResult.testResults.map((tr, i) => (
+                                   <div key={i} className="solve-run-tc-result">
+                                     <span className="solve-run-label">Case {i + 1}</span>
+                                     <div className="solve-run-box">
+                                       <span style={{color: '#8A7A5A'}}>Input:</span><br/>
+                                       {tr.input}
+                                     </div>
+                                     <div className="solve-run-box">
+                                       <span style={{color: '#8A7A5A'}}>Output:</span><br/>
+                                       {tr.actual}
+                                     </div>
+                                   </div>
+                                 ))}
+                               </>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="solve-console-empty">
+                            Click "Run" to test your code against the custom testcases.
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
-                )}
-              </div>
-            </div>
-          )}
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <div className="solve-editor-footer">
             {result && (
@@ -581,7 +605,7 @@ const ExampleTab = ({ question }) => (
 );
 
 /* ── Solution sub-component ─────────────────────── */
-const SolutionTab = ({ question }) => {
+const SolutionTab = ({ question, revealed, onReveal }) => {
   const sol = question?.solution;
   if (!sol) {
     return (
@@ -590,6 +614,47 @@ const SolutionTab = ({ question }) => {
       </p>
     );
   }
+
+  if (!revealed) {
+    return (
+      <div className="solve-solution-warning" style={{
+        background: '#181410',
+        border: '1px solid #3A2E1A',
+        borderRadius: '8px',
+        padding: '32px',
+        textAlign: 'center',
+        marginTop: '40px',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+      }}>
+        <div style={{ fontSize: '3rem', marginBottom: '16px', color: '#D4A83C' }}>📜</div>
+        <h2 style={{ 
+          fontFamily: 'Playfair Display, serif', 
+          color: '#D4A83C', 
+          fontSize: '1.6rem', 
+          fontStyle: 'italic',
+          marginBottom: '16px' 
+        }}>Seeker, beware!</h2>
+        <p style={{ 
+          color: '#D4C8A0', 
+          fontFamily: 'IM Fell English, serif', 
+          lineHeight: '1.6', 
+          marginBottom: '24px',
+          fontSize: '1.1rem'
+        }}>
+          Thou art about to gaze upon the ancient solution transcripts. 
+          Dost thou truly wish to exploit the arcane knowledge and sacrifice the sacred fun of solving this trial by thine own hand?
+        </p>
+        <button 
+          className="solve-btn solve-btn-submit" 
+          style={{ width: 'auto', padding: '10px 24px', fontSize: '0.9rem' }}
+          onClick={onReveal}
+        >
+          Reveal the Ancient Scroll
+        </button>
+      </div>
+    );
+  }
+
   const langLabel = { cpp: 'C++', python: 'Python', javascript: 'JavaScript' }[sol.language] || sol.language;
   return (
     <>
