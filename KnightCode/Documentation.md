@@ -66,15 +66,29 @@ KnightCode is a full-stack elite competitive coding platform built with an **"An
   - Custom "Ancient Codex" Monaco theme (gold keywords, dark obsidian background, gold cursor).
   - Language selector dropdown (C++, Python, JavaScript) with boilerplate templates.
   - On load, pre-selects the language matching the DB solution's language.
-  - "↗ Open on LeetCode" external link, "← Back" button, "Submit" button (placeholder).
-- Data fetched from `GET /api/problems/question?id=...&topic=...&difficulty=...`.
+  - "↗ Open on Polygon" external link, "← Back" button, "Submit" button.
+  - **Console Panel**: Collapsible tabbed console for managing up to 8 **Custom Test Cases**.
 
-### 7. Navbar (`Navbar.jsx`)
+### 7. Custom Test Case Runner (`POST /api/problems/run`)
+Users can validate their logic against their own inputs before a formal submission:
+- **Interactive UI**: Add, remove, and edit up to 8 custom test case inputs directly in the editor console.
+- **Real-time Feedback**: Executes code in the same sandboxed environment as the formal judge.
+- **Seed Logic**: Automatically seeds custom test cases with the problem's public sample cases on first load.
+- **Output capture**: Displays the raw standard output (STDOUT) from the user's program for each custom case.
+
+### 8. Enhanced Judge Engine
+The internal judge has been significantly optimized with "Battle-Ready" performance features:
+- **Dynamic Constraint Application**: Every problem now carries its own `timeLimit` (ms) and `memoryLimit` (bytes) parsed during the import process. This allows for strict TLE (Time Limit Exceeded) enforcement.
+- **BSON-Safe Imports**: The importer aggressively caps total test case data at 2MB per problem to ensure MongoDB performance and stability.
+- **High-Speed Execution**: Test cases are evaluated in parallel batches (`CHUNK_SIZE = 10`) using Docker container concurrency, drastically reducing the turnaround time for problems with 100+ test cases.
+- **Isolated Sandbox**: Uses a custom-built Docker executor with `--net=none`, `--cpus=0.5`, and `--memory=256m` for maximum security.
+
+### 9. Navbar (`Navbar.jsx`)
 - Fixed top navigation with Framer Motion transitions.
 - Conditionally renders username and logout based on auth state.
 - Links: Home, Chakras, Sanctum, Leaderboard, Arena, Astraverse.
 
-### 8. Monorepo Architecture
+### 10. Monorepo Architecture
 - `apps/web` — Vite + React frontend.
 - `apps/api` — Express backend.
 - Root `package.json` uses **concurrently** to run both simultaneously with `npm run dev`.
@@ -103,6 +117,8 @@ KnightCode is a full-stack elite competitive coding platform built with an **"An
         description: String,
         constraints: [String],
         testCases: [{ input, expectedOutput, hidden: Boolean }],
+        timeLimit: Number,      // ms, default: 1000
+        memoryLimit: Number,    // bytes, default: 268435456 (256MB)
         solution: {
           language: String,     // "cpp" | "python" | "javascript"
           code: String,
@@ -157,15 +173,27 @@ The `Executor` class is instantiated per-submission and handles local file manip
 When a user targets `POST /api/problems/submit`, the workflow operates as follows:
 1. **Source Generation**: Raw editor `code` strings are flushed via `fs.writeFileSync()` to the ephemeral workspace.
 2. **Container Ignition**: The runtime spawns using `child_process.spawn`.
-   - **Isolation Flags**: `--net=none` (disables internet access to prevent reverse shells), `--cpus=0.5` (hard throttles CPU cycles), and `--memory=256m` (blocks RAM overutilization memory leaks).
-   - **User Permissions**: `--user judgeuser` operates without root authority, disabling dangerous filesystem mutations inside the kernel namespace.
-3. **Execution Loop**: The loop maps across the problem's predefined Database Testcases.
-   - For every iteration, it pipes the `testCase.input` string payload into the container via standard input streams (`child.stdin.write`).
-   - Standard output payloads are collected asynchronously in `child.stdout.on('data')`.
-4. **Time Limiter**: To prevent infinite loop locking `while(true)`, a rigid Javascript `setTimeout` bounds execution to 2.0 seconds (`timeLimit = 2000`). Breaching this timer sends `child.kill()` and labels the status **Time Limit Exceeded**.
-5. **Evaluation**: Expected matching occurs sequentially for all returned data frames. 
-   - Strict adherence returns an overarching **Accepted**.
-   - Mismatched algorithms return **Wrong Answer**.
+3. **Sandboxed Resources**: 
+   - **Isolation Flags**: `--net=none` (disables internet access), `--cpus=0.5` (hard throttles CPU cycles), and `--memory=256m` (blocks RAM overutilization memory leaks).
+   - **User Permissions**: `--user judgeuser` operates without root authority.
+4. **Parallel Execution Loop**: The loop maps across the problem's predefined Database Testcases in chunks.
+   - **Parallelization**: `CHUNK_SIZE = 10` (runs up to 10 test cases in parallel via Docker containers for faster evaluation).
+   - For every iteration, it pipes the `testCase.input` string payload into the container via standard input streams.
+5. **Dynamic Time Limiter**: To prevent infinite loop locking, a Javascript `setTimeout` bounds execution. 
+   - **Limit Origin**: The judge uses the problem's specific `timeLimit` defined in MongoDB (e.g., 1000ms).
+   - **Default Limit**: Falls back to **1000ms** (1.0 second) if not specified. Braching this results in **Time Limit Exceeded**.
+6. **Evaluation**: Expected matching occurs for all returned data frames. 
+   - Strict adherence returns **Accepted**. Mismatched algorithms return **Wrong Answer**.
+
+### 3. Polygon Import Workflow (`apps/api/judge/import_polygon.js`)
+KnightCode supports importing problems directly from **Polygon (Codeforces)**.
+The process follows several key stages:
+- **Archive Extraction**: ZIP archives or folders are parsed for `problem.xml`.
+- **Constraint Parsing**: Extracts `time-limit` and `memory-limit` from the XML, converting them into millisecond/byte values for the local DB.
+- **Statement Conversion**: Extracts LaTeX descriptions from `problem.tex` and converts them (cleaning `%` symbols) for web display.
+- **Test Case Generation**: If test cases are missing, it triggers local generation via `doall.bat` or `doall.sh`.
+- **Database Mapping**: Maps Polygon tags (e.g., "strings", "dp") to KnightCode's Learning Roadmap topics.
+- **Safety Limits**: Limits total test case size to 2MB per problem during import to prevent MongoDB BSON RangeErrors.
 
 ### 3. Cleanup Protocol
 The `cleanup()` lifecycle fires unconditionally utilizing `fs.rmSync(this.tempDir, { recursive: true })` — erasing the source files, compiled Linux binaries, and cached folder frames.
@@ -181,6 +209,8 @@ The `cleanup()` lifecycle fires unconditionally utilizing `fs.rmSync(this.tempDi
 | `GET` | `/api/problems?topic=&difficulty=` | Fetch sorted problem list |
 | `GET` | `/api/problems/topics` | Fetch all topic names |
 | `GET` | `/api/problems/question?id=&topic=&difficulty=` | Fetch single full question |
+| `POST` | `/api/problems/run` | Run code against custom test cases |
+| `POST` | `/api/problems/submit` | Judge and submit solution |
 
 ---
 

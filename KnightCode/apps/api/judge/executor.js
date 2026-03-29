@@ -38,7 +38,7 @@ class Executor {
     return null; // No compilation needed for Python/JS
   }
 
-  async run(language, binPath, code, input, timeLimit = 2000) {
+  async run(language, binPath, code, input, timeLimit = 1000, memoryLimit = 268435456) {
     let command = 'docker';
     let args = [];
     
@@ -103,14 +103,17 @@ class Executor {
       const binPath = await this.compile(language, code);
       const results = [];
       let allPassed = true;
-      const CHUNK_SIZE = 5; // Run 5 test cases in parallel
+      const CHUNK_SIZE = 10; // Run 5 test cases in parallel
 
       // Process testcases in batches
+      const limitTime = question.timeLimit || 1000;
+      const limitMem = question.memoryLimit || 268435456;
+
       for (let i = 0; i < question.testCases.length; i += CHUNK_SIZE) {
         const chunk = question.testCases.slice(i, i + CHUNK_SIZE);
         
         const chunkPromises = chunk.map(async (testCase) => {
-          const result = await this.run(language, binPath || code, code, testCase.input, 2000);
+          const result = await this.run(language, binPath || code, code, testCase.input, limitTime, limitMem);
           const passed = result.status === 'Success' && result.output === testCase.expectedOutput;
           
           return {
@@ -163,13 +166,13 @@ class Executor {
     try {
       const binPath = await this.compile(language, code);
       const results = [];
-      const CHUNK_SIZE = 5;
+      const CHUNK_SIZE = 10;
 
       for (let i = 0; i < testCases.length; i += CHUNK_SIZE) {
         const chunk = testCases.slice(i, i + CHUNK_SIZE);
         
         const chunkPromises = chunk.map(async (testCase) => {
-          const result = await this.run(language, binPath || code, code, testCase.input, 2000);
+          const result = await this.run(language, binPath || code, code, testCase.input, 1000);
           
           return {
             input: testCase.input,

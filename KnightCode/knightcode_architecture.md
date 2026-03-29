@@ -511,27 +511,18 @@ Client ──WSS──► API Server (Socket.io)
 ```
 User submits code
        │
-  API receives POST /submissions
+  API receives POST /api/problems/submit
        │
-  Enqueues to Bull queue (Redis-backed)
+  Executor service handles execution
        │
-  Judge worker dequeues
+  Custom Docker Sandbox executes in isolated container
+  (Dynamic CPU/RAM limits, no network, parallel execution)
        │
-  Calls Judge0 REST API (self-hosted Docker)
-       │
-  Judge0 sandbox executes in isolated container
-  (CPU limit 2s, RAM 256MB, no network, PID limit 50)
-       │
-  Verdict returned: AC | WA | TLE | RE | CE | MLE
-       │
-  QualityService runs static analysis (async)
-  (ESLint / Pylint / clang-tidy depending on language)
+  Verdict returned: AC | WA | TLE | RE | CE
        │
   Submission record saved to MongoDB
        │
-  BadgeService evaluates triggers
-       │
-  Response to client (polled or WS)
+  Response to client (JSON)
 ```
 
 ---
@@ -585,7 +576,8 @@ interface Problem {
   acceptanceRate: number;  // recomputed on each submission
   weeklyBatch?: Date;      // null = evergreen
   testCases: { input: string; output: string; hidden: boolean }[];
-  constraints: { timeMs: number; memoryMB: number };
+  timeLimit: number;       // ms
+  memoryLimit: number;     // bytes
   description: string;     // Markdown, archaic prose tone
   companies: string[];
   createdAt: Date;

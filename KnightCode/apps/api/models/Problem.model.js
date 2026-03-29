@@ -11,6 +11,8 @@ const questionSchema = new mongoose.Schema({
   constraints: [mongoose.Schema.Types.Mixed],
   testCases: [mongoose.Schema.Types.Mixed],
   solution: mongoose.Schema.Types.Mixed,
+  timeLimit: { type: Number, default: 1000 },
+  memoryLimit: { type: Number, default: 268435456 },
   generatedAt: Date,
 }, { _id: true });
 

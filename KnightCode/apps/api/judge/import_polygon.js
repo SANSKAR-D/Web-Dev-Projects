@@ -192,6 +192,8 @@ async function processPolygonDirectory(sourceDir) {
     example: exampleText,
     constraints: constraints,
     testCases: testCases,
+    timeLimit: timeLimit || 1000,
+    memoryLimit: memoryLimit || 268435456,
     solution: {
       language: 'cpp',
       code: solutionCode,
