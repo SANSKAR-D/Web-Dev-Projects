@@ -149,6 +149,26 @@ const executor = require('../judge/executor');
 
 // ... existing code ...
 
+// @desc    Run custom test cases for a question
+// @route   POST /api/problems/run
+// @access  Public (Should be private in production)
+router.post('/run', async (req, res) => {
+  try {
+    const { language, code, testCases } = req.body;
+
+    if (!language || !code || !Array.isArray(testCases)) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    // Run the custom test cases
+    const result = await executor.runCustom(language, code, testCases);
+    
+    res.json(result);
+  } catch (error) {
+    console.error('Run route error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
 // @desc    Submit solution for a question
 // @route   POST /api/problems/submit
 // @access  Public (Should be private in production)

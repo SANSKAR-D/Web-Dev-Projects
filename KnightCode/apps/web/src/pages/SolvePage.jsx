@@ -147,6 +147,14 @@ const SolvePage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState(null);
 
+  // New Custom Test Runner States
+  const [customTestCases, setCustomTestCases] = useState([{ input: '' }]);
+  const [activeTestCaseIndex, setActiveTestCaseIndex] = useState(0);
+  const [runTestResult, setRunTestResult] = useState(null);
+  const [runningTest, setRunningTest] = useState(false);
+  const [showConsole, setShowConsole] = useState(false);
+  const [consoleTab, setConsoleTab] = useState('testcases'); // 'testcases' | 'result'
+
   /* Fetch full question */
   const fetchQuestionData = useCallback(() => {
     if (!id || !topic || !difficulty) return;
@@ -160,6 +168,13 @@ const SolvePage = () => {
             data.example = parsed.example || data.example;
         }
         setQuestion(data);
+        // Seed custom testcases
+        if (data && data.testCases) {
+           const sampleTcs = data.testCases.filter(tc => !tc.hidden).map(tc => ({ input: String(tc.input || '') }));
+           if (sampleTcs.length > 0) {
+             setCustomTestCases(sampleTcs.slice(0, 8));
+           }
+        }
         // Seed editor with solution language if available
         const solLang = res.data?.solution?.language;
         if (solLang && TEMPLATES[solLang]) {
@@ -203,6 +218,26 @@ const SolvePage = () => {
       setResult({ overallStatus: 'Error', message: err.response?.data?.message || 'Submission failed.' });
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleRunTestCases = async () => {
+    if (!id || !topic || !difficulty) return;
+    setRunningTest(true);
+    setRunTestResult(null);
+    setShowConsole(true);
+    setConsoleTab('result');
+    try {
+      const res = await client.post('/problems/run', {
+        language: lang,
+        code,
+        testCases: customTestCases
+      });
+      setRunTestResult(res.data);
+    } catch (err) {
+      setRunTestResult({ overallStatus: 'Error', message: err.response?.data?.message || 'Run failed.' });
+    } finally {
+      setRunningTest(false);
     }
   };
 
@@ -303,6 +338,99 @@ const SolvePage = () => {
             />
           </div>
 
+          {showConsole && (
+            <div className="solve-testcases-console" style={{ height: '300px' }}>
+              <div className="solve-console-header">
+                <button
+                  className={`solve-console-tab ${consoleTab === 'testcases' ? 'active' : ''}`}
+                  onClick={() => setConsoleTab('testcases')}
+                >
+                  Testcases
+                </button>
+                <button
+                  className={`solve-console-tab ${consoleTab === 'result' ? 'active' : ''}`}
+                  onClick={() => setConsoleTab('result')}
+                >
+                  Run Result
+                </button>
+                <button className="solve-console-close" onClick={() => setShowConsole(false)}>✕</button>
+              </div>
+              <div className="solve-console-body">
+                {consoleTab === 'testcases' ? (
+                  <div>
+                    <div className="solve-tc-tabs">
+                      {customTestCases.map((_, i) => (
+                        <button
+                          key={i}
+                          className={`solve-tc-tab ${activeTestCaseIndex === i ? 'active' : ''}`}
+                          onClick={() => setActiveTestCaseIndex(i)}
+                        >
+                          Case {i + 1}
+                        </button>
+                      ))}
+                      {customTestCases.length < 8 && (
+                        <button
+                          className="solve-tc-tab-add"
+                          onClick={() => {
+                            setCustomTestCases([...customTestCases, { input: '' }]);
+                            setActiveTestCaseIndex(customTestCases.length);
+                          }}
+                        >
+                          + Add
+                        </button>
+                      )}
+                    </div>
+                    {customTestCases.length > 0 && customTestCases[activeTestCaseIndex] !== undefined && (
+                      <textarea
+                        className="solve-tc-textarea"
+                        value={customTestCases[activeTestCaseIndex].input}
+                        onChange={(e) => {
+                          const newTcs = [...customTestCases];
+                          newTcs[activeTestCaseIndex].input = e.target.value;
+                          setCustomTestCases(newTcs);
+                        }}
+                        placeholder="Enter custom input here..."
+                      />
+                    )}
+                  </div>
+                ) : (
+                  <div>
+                    {runningTest ? (
+                      <div className="solve-loading">Scribing Runes...</div>
+                    ) : runTestResult ? (
+                      <div>
+                        {runTestResult.overallStatus === 'Error' ? (
+                           <div className="solve-run-status error">{runTestResult.message}</div>
+                        ) : (
+                           <>
+                             <div className="solve-run-status success">Execution Completed</div>
+                             {runTestResult.testResults && runTestResult.testResults.map((tr, i) => (
+                               <div key={i} className="solve-run-tc-result">
+                                 <span className="solve-run-label">Case {i + 1}</span>
+                                 <div className="solve-run-box">
+                                   <span style={{color: '#8A7A5A'}}>Input:</span><br/>
+                                   {tr.input}
+                                 </div>
+                                 <div className="solve-run-box">
+                                   <span style={{color: '#8A7A5A'}}>Output:</span><br/>
+                                   {tr.actual}
+                                 </div>
+                               </div>
+                             ))}
+                           </>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="solve-console-empty">
+                        Click "Run" to test your code against the custom testcases.
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           <div className="solve-editor-footer">
             {result && (
               <div className={`solve-result-overlay ${result.overallStatus === 'Accepted' ? 'success' : 'failure'}`}>
@@ -338,21 +466,40 @@ const SolvePage = () => {
                 rel="noopener noreferrer"
                 className="solve-lc-link"
               >
-                ↗ Open on LeetCode
+                ↗ Open on Polygon
               </a>
             )}
+            <button 
+              className="solve-btn solve-btn-run"
+              onClick={() => {
+                 setShowConsole(prev => !prev);
+                 if (!showConsole && consoleTab !== 'result') {
+                    setConsoleTab('testcases');
+                 }
+              }}
+              style={{ marginRight: 'auto', marginLeft: question?.link ? '20px' : '0' }}
+            >
+              Console
+            </button>
             <button
               className="solve-btn solve-btn-run"
               onClick={() => navigate(`/forge?topic=${encodeURIComponent(topic)}&difficulty=${difficulty}`)}
             >
               ← Back
             </button>
+            <button
+              className="solve-btn solve-btn-run"
+              onClick={handleRunTestCases}
+              disabled={runningTest || submitting}
+            >
+              {runningTest ? 'Running…' : 'Run '}
+            </button>
             <button 
               className="solve-btn solve-btn-submit" 
               onClick={handleSubmit}
-              disabled={submitting}
+              disabled={submitting || runningTest}
             >
-              {submitting ? 'Running…' : 'Submit'}
+              {submitting ? 'Submitting…' : 'Submit'}
             </button>
           </div>
         </div>

@@ -462,3 +462,163 @@
   text-transform: uppercase;
 }
 
+/* ── Testcases Console ──────────────────────────────── */
+.solve-testcases-console {
+  display: flex;
+  flex-direction: column;
+  background: #12100E;
+  border-top: 1px solid #2E2718;
+  flex-shrink: 0;
+  transition: height 0.3s ease;
+}
+
+.solve-console-header {
+  display: flex;
+  background: #181410;
+  border-bottom: 1px solid #2E2718;
+  padding: 0 14px;
+  align-items: center;
+}
+
+.solve-console-tab {
+  padding: 10px 16px;
+  background: transparent;
+  border: none;
+  color: #7A6A4A;
+  font-family: 'IM Fell English', serif;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+
+.solve-console-tab.active {
+  color: #D4A83C;
+  border-bottom: 2px solid #D4A83C;
+}
+
+.solve-console-close {
+  margin-left: auto;
+  background: transparent;
+  border: none;
+  color: #7A6A4A;
+  cursor: pointer;
+  font-size: 1.2rem;
+}
+
+.solve-console-close:hover {
+  color: #D4A83C;
+}
+
+.solve-console-body {
+  padding: 14px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.solve-tc-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.solve-tc-tab {
+  padding: 6px 12px;
+  background: #181410;
+  border: 1px solid #2E2718;
+  border-radius: 6px;
+  color: #8A7A5A;
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.solve-tc-tab.active {
+  background: #2E2718;
+  color: #D4A83C;
+  border-color: #D4A83C;
+}
+
+.solve-tc-tab-add {
+  padding: 6px 10px;
+  background: transparent;
+  border: 1px dashed #5A4A2A;
+  border-radius: 6px;
+  color: #A89060;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.solve-tc-tab-add:hover {
+  border-color: #D4A83C;
+  color: #D4A83C;
+}
+
+.solve-tc-textarea {
+  width: 100%;
+  height: 120px;
+  background: #0D0B09;
+  border: 1px solid #3A2E1A;
+  color: #D4C8A0;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  padding: 10px;
+  border-radius: 6px;
+  resize: vertical;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.solve-tc-textarea:focus {
+  border-color: #D4A83C;
+}
+
+/* Run Results Box */
+.solve-run-status {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.15rem;
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+.solve-run-status.success { color: #6DBF8A; }
+.solve-run-status.error { color: #C05A4A; }
+
+.solve-run-tc-result {
+  background: #181410;
+  border: 1px solid #2E2718;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.solve-run-label {
+  font-family: 'IM Fell English', serif;
+  font-size: 0.8rem;
+  color: #6A5A3A;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.solve-run-box {
+  background: #0D0B09;
+  border: 1px solid #2E2718;
+  border-radius: 4px;
+  padding: 8px;
+  margin-bottom: 8px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  color: #D4C8A0;
+  white-space: pre-wrap;
+}
+
+.solve-console-empty {
+  color: #6A5A3A;
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  text-align: center;
+  padding: 20px 0;
+}
+

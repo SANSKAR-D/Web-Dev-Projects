@@ -159,11 +159,47 @@ class Executor {
     }
   }
 
+  async runCustom(language, code, testCases) {
+    try {
+      const binPath = await this.compile(language, code);
+      const results = [];
+      const CHUNK_SIZE = 5;
+
+      for (let i = 0; i < testCases.length; i += CHUNK_SIZE) {
+        const chunk = testCases.slice(i, i + CHUNK_SIZE);
+        
+        const chunkPromises = chunk.map(async (testCase) => {
+          const result = await this.run(language, binPath || code, code, testCase.input, 2000);
+          
+          return {
+            input: testCase.input,
+            actual: result.output,
+            status: result.status 
+          };
+        });
+
+        const chunkResults = await Promise.all(chunkPromises);
+        results.push(...chunkResults);
+      }
+
+      return {
+        overallStatus: 'Executed',
+        testResults: results
+      };
+    } catch (err) {
+      return {
+        overallStatus: 'Error',
+        message: err.message
+      };
+    }
+  }
+
   cleanup() {
     if (fs.existsSync(this.tempDir)) {
       fs.rmSync(this.tempDir, { recursive: true, force: true });
     }
   }
 }
+
 
 module.exports = new Executor();
