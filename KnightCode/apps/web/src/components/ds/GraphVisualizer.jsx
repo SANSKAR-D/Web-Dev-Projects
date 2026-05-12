@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
 // Fixed graph layout for visualization
@@ -34,7 +34,14 @@ const adjList = {
 };
 
 const GraphVisualizer = () => {
-    const [visited, setVisited] = useState([]);
+    const [visited, setVisited] = useState(() => {
+        const saved = localStorage.getItem('kc_ds_graph_visited');
+        return saved ? JSON.parse(saved) : [];
+    });
+
+    useEffect(() => {
+        localStorage.setItem('kc_ds_graph_visited', JSON.stringify(visited));
+    }, [visited]);
     const [current, setCurrent] = useState(null);
     const [isRunning, setIsRunning] = useState(false);
 

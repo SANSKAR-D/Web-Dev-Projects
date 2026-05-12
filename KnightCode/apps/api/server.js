@@ -6,7 +6,18 @@ const connectDB = require('./config/db');
 const authRoutes = require('./routes/auth.routes');
 const problemsRoutes = require('./routes/problems.routes');
 
+const http = require('http');
+const { Server } = require('socket.io');
+
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: '*', // For development, allow all origins
+    methods: ['GET', 'POST']
+  }
+});
+
 const PORT = process.env.PORT || 5000;
 
 // Connect to Database
@@ -25,12 +36,15 @@ app.get('/', (req, res) => {
   res.send('KnightCode API is running...');
 });
 
+// Setup Arena Sockets
+require('./sockets/arena')(io);
+
 // Error Handling Middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ message: 'Server Error', error: err.message });
 });
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

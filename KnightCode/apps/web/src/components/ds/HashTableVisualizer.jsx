@@ -1,14 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const NUM_BUCKETS = 5;
 
 const HashTableVisualizer = () => {
     // Array of arrays (buckets)
-    const [buckets, setBuckets] = useState(Array.from({ length: NUM_BUCKETS }, () => []));
+    const [buckets, setBuckets] = useState(() => {
+        const saved = localStorage.getItem('kc_ds_hashtable');
+        return saved ? JSON.parse(saved) : Array.from({ length: NUM_BUCKETS }, () => []);
+    });
     const [inputKey, setInputKey] = useState('');
     const [inputValue, setInputValue] = useState('');
     const [hashAnimation, setHashAnimation] = useState(null); // { key, hashIndex }
+
+    useEffect(() => {
+        localStorage.setItem('kc_ds_hashtable', JSON.stringify(buckets));
+    }, [buckets]);
 
     const getTotalElements = () => buckets.reduce((acc, bucket) => acc + bucket.length, 0);
 

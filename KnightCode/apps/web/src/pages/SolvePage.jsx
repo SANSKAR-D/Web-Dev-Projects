@@ -142,9 +142,18 @@ const SolvePage = () => {
   const [question, setQuestion] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState('description'); // 'description' | 'example' | 'solution' | 'discussion' | 'admin'
-  const [lang, setLang] = useState('cpp');
-  const [code, setCode] = useState(TEMPLATES.cpp);
+  const [activeTab, setActiveTab] = useState(() => {
+      const saved = localStorage.getItem(`kc_tab_${id}`);
+      return saved || 'description';
+  });
+  const [lang, setLang] = useState(() => {
+      const saved = localStorage.getItem(`kc_lang_${id}`);
+      return saved || 'cpp';
+  });
+  const [code, setCode] = useState(() => {
+      const saved = localStorage.getItem(`kc_code_${id}`);
+      return saved || TEMPLATES.cpp;
+  });
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState(null);
   const [isSolutionRevealed, setIsSolutionRevealed] = useState(false);
@@ -156,6 +165,19 @@ const SolvePage = () => {
   const [runningTest, setRunningTest] = useState(false);
   const [showConsole, setShowConsole] = useState(false);
   const [consoleTab, setConsoleTab] = useState('testcases'); // 'testcases' | 'result'
+
+  // Persist states
+  useEffect(() => {
+      if (id) localStorage.setItem(`kc_tab_${id}`, activeTab);
+  }, [activeTab, id]);
+
+  useEffect(() => {
+      if (id) localStorage.setItem(`kc_lang_${id}`, lang);
+  }, [lang, id]);
+
+  useEffect(() => {
+      if (id) localStorage.setItem(`kc_code_${id}`, code);
+  }, [code, id]);
 
   /* Fetch full question */
   const fetchQuestionData = useCallback(() => {
@@ -178,11 +200,16 @@ const SolvePage = () => {
              setCustomTestCases(sampleTcs.slice(0, 8));
            }
         }
-        // Seed editor with solution language if available
-        const solLang = res.data?.solution?.language;
-        if (solLang && TEMPLATES[solLang]) {
-          setLang(solLang);
-          setCode(TEMPLATES[solLang]);
+        // Only seed editor with solution language if not found in local storage
+        const savedLang = localStorage.getItem(`kc_lang_${id}`);
+        const savedCode = localStorage.getItem(`kc_code_${id}`);
+        
+        if (!savedCode && !savedLang) {
+            const solLang = res.data?.solution?.language;
+            if (solLang && TEMPLATES[solLang]) {
+              setLang(solLang);
+              setCode(TEMPLATES[solLang]);
+            }
         }
       })
       .catch(() => setError('Failed to load problem.'))
@@ -201,7 +228,10 @@ const SolvePage = () => {
   const handleLangChange = (e) => {
     const l = e.target.value;
     setLang(l);
-    setCode(TEMPLATES[l] || '');
+    // Overwrite only if they haven't written custom code
+    if (code === TEMPLATES.cpp || code === TEMPLATES.python || code === TEMPLATES.javascript) {
+        setCode(TEMPLATES[l] || '');
+    }
   };
 
   const handleSubmit = async () => {

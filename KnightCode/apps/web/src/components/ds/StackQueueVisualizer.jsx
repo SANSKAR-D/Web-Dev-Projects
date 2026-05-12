@@ -5,22 +5,34 @@ const StackQueueVisualizer = ({ mode }) => {
     // Mode can be 'Stack' or 'Queue'
     const isStack = mode === 'Stack';
     
-    const [items, setItems] = useState([
-        { id: '1', value: 10 },
-        { id: '2', value: 25 },
-        { id: '3', value: 42 }
-    ]);
+    const [items, setItems] = useState(() => {
+        const saved = localStorage.getItem(`kc_ds_${mode.toLowerCase()}`);
+        return saved ? JSON.parse(saved) : [
+            { id: '1', value: 10 },
+            { id: '2', value: 25 },
+            { id: '3', value: 42 }
+        ];
+    });
     const [inputValue, setInputValue] = useState('');
 
     // Reset items when mode changes to show a clean state for the new structure
     useEffect(() => {
-        setItems([
-            { id: '1', value: 10 },
-            { id: '2', value: 25 },
-            { id: '3', value: 42 }
-        ]);
+        const saved = localStorage.getItem(`kc_ds_${mode.toLowerCase()}`);
+        if (saved) {
+            setItems(JSON.parse(saved));
+        } else {
+            setItems([
+                { id: '1', value: 10 },
+                { id: '2', value: 25 },
+                { id: '3', value: 42 }
+            ]);
+        }
         setInputValue('');
     }, [mode]);
+
+    useEffect(() => {
+        localStorage.setItem(`kc_ds_${mode.toLowerCase()}`, JSON.stringify(items));
+    }, [items, mode]);
 
     const generateId = () => Math.random().toString(36).substr(2, 9);
 

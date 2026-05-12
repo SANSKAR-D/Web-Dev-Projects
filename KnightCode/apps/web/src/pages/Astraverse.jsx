@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '../components/layout/Navbar.jsx';
 import SacredGeometryCanvas from '../components/three/SacredGeometryCanvas.jsx';
 import ArrayVisualizer from '../components/ds/ArrayVisualizer.jsx';
@@ -12,9 +12,15 @@ import GraphVisualizer from '../components/ds/GraphVisualizer.jsx';
 import './Astraverse.css';
 
 const Astraverse = () => {
-    const [activeDS, setActiveDS] = useState('Array');
+    const [activeDS, setActiveDS] = useState(() => {
+        return localStorage.getItem('knightcode_astraverse_ds') || 'Array';
+    });
 
-    const dsOptions = ['Array', 'Linked List', 'Stack', 'Queue', 'Sorting', 'Hash Table', 'Binary Search', 'BST', 'Graph'];
+    useEffect(() => {
+        localStorage.setItem('knightcode_astraverse_ds', activeDS);
+    }, [activeDS]);
+
+    const dsOptions = ['Array', 'Linked List', 'Stack', 'Queue', 'Sorting', 'Binary Search', 'BST', 'Graph'];
 
     const renderVisualizer = () => {
         switch (activeDS) {
@@ -28,8 +34,6 @@ const Astraverse = () => {
                 return <StackQueueVisualizer mode="Queue" />;
             case 'Sorting':
                 return <SortingVisualizer />;
-            case 'Hash Table':
-                return <HashTableVisualizer />;
             case 'Binary Search':
                 return <BinarySearchVisualizer />;
             case 'BST':

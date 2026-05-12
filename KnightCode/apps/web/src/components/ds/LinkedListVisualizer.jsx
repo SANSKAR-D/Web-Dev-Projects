@@ -1,13 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const LinkedListVisualizer = () => {
-    const [list, setList] = useState([
-        { id: '1', value: 10 },
-        { id: '2', value: 25 },
-        { id: '3', value: 42 }
-    ]);
+    const [list, setList] = useState(() => {
+        const saved = localStorage.getItem('kc_ds_linkedlist');
+        return saved ? JSON.parse(saved) : [
+            { id: '1', value: 10 },
+            { id: '2', value: 25 },
+            { id: '3', value: 42 }
+        ];
+    });
     const [inputValue, setInputValue] = useState('');
+
+    useEffect(() => {
+        localStorage.setItem('kc_ds_linkedlist', JSON.stringify(list));
+    }, [list]);
 
     const generateId = () => Math.random().toString(36).substr(2, 9);
 

@@ -1,16 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const ArrayVisualizer = () => {
     // State to hold the array elements. We use objects with unique IDs for Framer Motion to track them properly.
-    const [array, setArray] = useState([
-        { id: '1', value: 10 },
-        { id: '2', value: 25 },
-        { id: '3', value: 42 },
-        { id: '4', value: 8 },
-        { id: '5', value: 99 }
-    ]);
+    const [array, setArray] = useState(() => {
+        const saved = localStorage.getItem('kc_ds_array');
+        return saved ? JSON.parse(saved) : [
+            { id: '1', value: 10 },
+            { id: '2', value: 25 },
+            { id: '3', value: 42 },
+            { id: '4', value: 8 },
+            { id: '5', value: 99 }
+        ];
+    });
     const [inputValue, setInputValue] = useState('');
+
+    useEffect(() => {
+        localStorage.setItem('kc_ds_array', JSON.stringify(array));
+    }, [array]);
 
     const generateId = () => Math.random().toString(36).substr(2, 9);
 

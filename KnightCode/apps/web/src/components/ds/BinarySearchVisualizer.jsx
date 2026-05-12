@@ -2,7 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
 const BinarySearchVisualizer = () => {
-    const [array, setArray] = useState([]);
+    const [array, setArray] = useState(() => {
+        const saved = localStorage.getItem('kc_ds_binarysearch');
+        return saved ? JSON.parse(saved) : [];
+    });
     const [target, setTarget] = useState('');
     const [isSearching, setIsSearching] = useState(false);
     
@@ -30,8 +33,16 @@ const BinarySearchVisualizer = () => {
     };
 
     useEffect(() => {
-        generateSortedArray();
+        if (array.length === 0) {
+            generateSortedArray();
+        }
     }, []);
+
+    useEffect(() => {
+        if (array.length > 0) {
+            localStorage.setItem('kc_ds_binarysearch', JSON.stringify(array));
+        }
+    }, [array]);
 
     const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 

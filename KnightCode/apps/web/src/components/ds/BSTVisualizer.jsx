@@ -1,12 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const BSTVisualizer = () => {
     // Array of nodes: { id, value, x, y, parentId }
-    const [nodes, setNodes] = useState([]);
-    const [edges, setEdges] = useState([]);
+    const [nodes, setNodes] = useState(() => {
+        const saved = localStorage.getItem('kc_ds_bst_nodes');
+        return saved ? JSON.parse(saved) : [];
+    });
+    const [edges, setEdges] = useState(() => {
+        const saved = localStorage.getItem('kc_ds_bst_edges');
+        return saved ? JSON.parse(saved) : [];
+    });
     const [inputValue, setInputValue] = useState('');
     const [animatingNodeId, setAnimatingNodeId] = useState(null);
+
+    useEffect(() => {
+        localStorage.setItem('kc_ds_bst_nodes', JSON.stringify(nodes));
+        localStorage.setItem('kc_ds_bst_edges', JSON.stringify(edges));
+    }, [nodes, edges]);
 
     const generateId = () => Math.random().toString(36).substr(2, 9);
     

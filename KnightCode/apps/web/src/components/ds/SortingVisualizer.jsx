@@ -2,7 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const SortingVisualizer = () => {
-    const [array, setArray] = useState([]);
+    const [array, setArray] = useState(() => {
+        const saved = localStorage.getItem('kc_ds_sorting');
+        return saved ? JSON.parse(saved) : [];
+    });
     const [isSorting, setIsSorting] = useState(false);
     const [comparingIndices, setComparingIndices] = useState([]);
     const [sortedIndices, setSortedIndices] = useState([]);
@@ -24,8 +27,16 @@ const SortingVisualizer = () => {
     };
 
     useEffect(() => {
-        generateRandomArray();
+        if (array.length === 0) {
+            generateRandomArray();
+        }
     }, []);
+
+    useEffect(() => {
+        if (array.length > 0) {
+            localStorage.setItem('kc_ds_sorting', JSON.stringify(array));
+        }
+    }, [array]);
 
     const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
