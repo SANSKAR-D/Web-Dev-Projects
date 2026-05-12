@@ -52,7 +52,7 @@ const loginUser = async ({ email, password }) => {
 };
 
 const getProfile = async (userId) => {
-  const user = await User.findById(userId).select('-passwordHash');
+  const user = await User.findById(userId).select('-passwordHash -solvedQuestionIds');
   if (user) {
     return user;
   } else {

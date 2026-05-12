@@ -54,7 +54,10 @@ class Executor {
     const sourceName = language === 'cpp' ? binPath : `solution.${language === 'python' ? 'py' : 'js'}`;
 
     if (language !== 'cpp') {
-      fs.writeFileSync(path.join(tempDir, sourceName), code);
+      const filePath = path.join(tempDir, sourceName);
+      if (!fs.existsSync(filePath)) {
+        fs.writeFileSync(filePath, code);
+      }
     }
 
     const baseArgs = [
@@ -111,9 +114,16 @@ class Executor {
     const tempDir = this.createTempDir();
     try {
       const binPath = await this.compile(language, code, tempDir);
+      
+      // Pre-write source file once for interpreted languages (avoid parallel write race)
+      if (language !== 'cpp') {
+        const srcName = `solution.${language === 'python' ? 'py' : 'js'}`;
+        fs.writeFileSync(path.join(tempDir, srcName), code);
+      }
+      
       const results = [];
       let allPassed = true;
-      const CHUNK_SIZE = 10; // Run 5 test cases in parallel
+      const CHUNK_SIZE = 10;
 
       // Process testcases in batches
       const limitTime = question.timeLimit || 1000;
@@ -176,6 +186,13 @@ class Executor {
     const tempDir = this.createTempDir();
     try {
       const binPath = await this.compile(language, code, tempDir);
+      
+      // Pre-write source file once for interpreted languages
+      if (language !== 'cpp') {
+        const srcName = `solution.${language === 'python' ? 'py' : 'js'}`;
+        fs.writeFileSync(path.join(tempDir, srcName), code);
+      }
+      
       const results = [];
       const CHUNK_SIZE = 10;
 

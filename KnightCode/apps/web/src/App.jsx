@@ -45,6 +45,7 @@ function App() {
 
           <Route element={<ProtectedRoute />}>
             <Route path="/sanctum/:username" element={<Profile />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="/sanctum" element={<Sanctum />} />
             <Route path="/difficulty" element={<TopicArena />} />
             <Route path="/forge" element={<ProblemsPage />} />

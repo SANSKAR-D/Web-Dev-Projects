@@ -50,6 +50,13 @@ const userSchema = new mongoose.Schema({
   battleCount: { type: Number, default: 0 },
   questionsSolved: { type: Number, default: 0 },
   solvedQuestionIds: [{ type: String }],
+  solvedByDifficulty: {
+    easy: { type: Number, default: 0 },
+    medium: { type: Number, default: 0 },
+    hard: { type: Number, default: 0 }
+  },
+  submissionDates: [{ type: Date }],
+  avatar: { type: String, default: '' },
   createdAt: {
     type: Date,
     default: Date.now

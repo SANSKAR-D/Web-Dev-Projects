@@ -30,7 +30,7 @@ const PORT = process.env.PORT || 5000;
 connectDB();
 
 // Middleware
-app.use(express.json({ limit: '50kb' })); // Cap request body size
+app.use(express.json({ limit: '1mb' })); // Supports avatar base64 uploads
 app.use(cors({ origin: allowedOrigins }));
 app.use(helmet({
   contentSecurityPolicy: {

@@ -220,11 +220,17 @@ router.post('/submit', submitLimiter, optionalProtect, async (req, res) => {
     // If accepted and user is logged in, update their solved count (dedup)
     if (result.overallStatus === 'Accepted' && req.user) {
       const questionKey = `${topic}_${difficulty}_${id}`;
+      const diffKey = `solvedByDifficulty.${level.toLowerCase()}`;
+      
+      // Single atomic update: record submission date + dedup solve count
       await User.updateOne(
         { _id: req.user._id, solvedQuestionIds: { $ne: questionKey } },
         {
-          $inc: { questionsSolved: 1 },
-          $push: { solvedQuestionIds: questionKey }
+          $inc: { questionsSolved: 1, [diffKey]: 1 },
+          $push: { 
+            solvedQuestionIds: questionKey,
+            submissionDates: { $each: [new Date()], $slice: -365 }
+          }
         }
       );
     }

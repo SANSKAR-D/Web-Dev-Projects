@@ -28,7 +28,8 @@ module.exports = (io) => {
                 p2: null,
                 status: 'waiting',
                 questions: [],
-                startTime: null
+                startTime: null,
+                createdAt: Date.now()
             });
             
             socket.join(`arena_${roomCode}`);

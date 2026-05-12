@@ -65,4 +65,29 @@ router.get('/profile', protect, async (req, res) => {
   }
 });
 
+// @desc    Upload/update user avatar
+// @route   PUT /api/auth/avatar
+// @access  Private
+router.put('/avatar', protect, async (req, res) => {
+  try {
+    const { avatar } = req.body;
+    if (!avatar || typeof avatar !== 'string') {
+      return res.status(400).json({ message: 'Avatar data is required' });
+    }
+    // Validate it's a proper image data URI
+    if (!avatar.startsWith('data:image/')) {
+      return res.status(400).json({ message: 'Avatar must be a valid image' });
+    }
+    // Limit avatar size (500KB base64)
+    if (avatar.length > 500000) {
+      return res.status(400).json({ message: 'Avatar too large. Max 500KB.' });
+    }
+    const User = require('../models/User.model');
+    await User.updateOne({ _id: req.user._id }, { avatar });
+    res.json({ message: 'Avatar updated' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;

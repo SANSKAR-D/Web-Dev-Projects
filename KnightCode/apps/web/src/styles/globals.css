@@ -1,10 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=IM+Fell+English:ital@0;1&family=JetBrains+Mono:wght@400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=IM+Fell+English:ital@0;1&family=JetBrains+Mono:wght@400;600&family=Fira+Code:wght@400;600&display=swap');
 
 :root {
   /* Ancient Codex Color Token Definitions */
-  --bg: #1A1208;
+  --bg: #0D0B09;
   --surface: #0D0B09;
-  --surface-raised: #211A0E;
+  --surface-raised: #181410;
   --gold-dim: #B8902A;
   --gold-mid: #D4A83C;
   --gold-bright: #E8C060;
@@ -18,7 +18,7 @@
   /* Typography Stack */
   --font-display: 'Playfair Display', Georgia, serif;
   --font-body: 'IM Fell English', Georgia, serif;
-  --font-code: 'JetBrains Mono', 'Courier New', mono;
+  --font-code: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
   --font-ui: 'Playfair Display', serif;
 }
 
@@ -26,6 +26,35 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0D0B09;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(184, 144, 42, 0.25);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(184, 144, 42, 0.4);
+}
+
+/* Selection */
+::selection {
+  background: rgba(212, 168, 60, 0.3);
+  color: #F0E0B0;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
@@ -36,6 +65,8 @@ body {
   min-height: 100vh;
   margin: 0;
   position: relative;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Texture & Grain Layer */
@@ -47,7 +78,7 @@ body {
   height: 100%;
   pointer-events: none;
   z-index: 9999;
-  opacity: 0.04;
+  opacity: 0.03;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -66,25 +97,36 @@ a:hover {
   color: var(--gold-bright);
 }
 
+/* Nav Links */
 .NavLinks {
-  color: var(--gold-mid);
+  color: var(--text-muted);
   border: 1px solid transparent;
-  border-radius: 4px;
-  transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+  border-radius: 6px;
+  transition: all 0.25s ease;
+  text-decoration: none;
+  font-family: var(--font-ui);
+  position: relative;
+}
+
+.NavLinks:hover {
+  color: var(--gold-bright);
+  background: rgba(232, 192, 96, 0.04);
 }
 
 .NavLinks.active {
   color: var(--gold-bright);
-  background: rgba(203, 163, 70, 0.12);
-  box-shadow: 0 0 18px rgba(236, 190, 82, 0.16), inset 0 0 12px rgba(232, 192, 96, 0.08);
+  background: rgba(203, 163, 70, 0.1);
+  box-shadow: 0 0 14px rgba(236, 190, 82, 0.12), inset 0 0 8px rgba(232, 192, 96, 0.05);
 }
 
 /* Card Anatomy — Gold Leaf Inlay */
 .codex-card {
-  background: var(--surface);
-  border: 1px solid var(--gold-dim);
-  border-radius: 10px;
-  box-shadow: 0 0 0 1px rgba(184,144,42,0.08), 0 8px 32px rgba(0,0,0,0.5);
+  background: rgba(13, 11, 9, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(184, 144, 42, 0.15);
+  border-radius: 14px;
+  box-shadow: 0 0 0 1px rgba(184,144,42,0.05), 0 12px 40px rgba(0,0,0,0.5);
   position: relative;
   overflow: hidden;
 }
@@ -94,7 +136,7 @@ a:hover {
   display: block;
   height: 2px;
   background: linear-gradient(90deg, transparent, var(--gold-mid), var(--gold-bright), var(--gold-mid), transparent);
-  border-radius: 10px 10px 0 0;
+  border-radius: 14px 14px 0 0;
 }
 
 /* Ghost watermark emblem */
@@ -114,38 +156,66 @@ a:hover {
 button {
   font-family: var(--font-ui);
   cursor: pointer;
+  transition: all 0.25s ease;
 }
 
 .gold-button {
-  background: var(--gold-dim);
+  background: linear-gradient(135deg, var(--gold-dim), var(--gold-bright));
   color: var(--surface);
-  border: 1px solid var(--gold-bright);
+  border: none;
   padding: 0.75rem 1.5rem;
-  border-radius: 4px;
+  border-radius: 8px;
   font-weight: 700;
-  font-size: 1.1rem;
-  transition: all 0.2s ease;
-  box-shadow: 0 0 10px var(--gold-glow);
+  font-size: 0.95rem;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 12px rgba(212,168,60,0.2);
 }
 
 .gold-button:hover {
-  background: var(--gold-bright);
-  box-shadow: 0 0 20px var(--gold-glow);
+  box-shadow: 0 4px 20px rgba(212,168,60,0.35);
+  transform: translateY(-1px);
+}
+
+.gold-button:active {
+  transform: translateY(0);
 }
 
 .ghost-button {
   background: transparent;
   color: var(--gold-mid);
-  border: 1px solid var(--gold-dim);
+  border: 1px solid rgba(184, 144, 42, 0.3);
   padding: 0.75rem 1.5rem;
-  border-radius: 4px;
-  font-weight: 700;
-  font-size: 1.1rem;
-  transition: all 0.2s ease;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.25s ease;
 }
 
 .ghost-button:hover {
-  background: rgba(232, 192, 96, 0.05);
+  background: rgba(232, 192, 96, 0.06);
   color: var(--gold-bright);
-  border-color: var(--gold-bright);
+  border-color: rgba(232, 192, 96, 0.5);
+  box-shadow: 0 0 15px rgba(232, 192, 96, 0.06);
+}
+
+/* Utility: pulsing text */
+@keyframes gentlePulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+.pulsing-text {
+  animation: gentlePulse 2s ease-in-out infinite;
+}
+
+/* Smooth page transitions */
+.page-enter {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: all 0.3s ease;
 }
