@@ -163,6 +163,49 @@ const Arena = () => {
     return (
         <div style={{ minHeight: '100vh', width: '100vw', background: '#0D0B09', position: 'relative', overflowX: 'hidden' }}>
             <SacredGeometryCanvas />
+
+            {/* Ambient background decorations */}
+            <div style={{ position: 'fixed', inset: 0, zIndex: 1, pointerEvents: 'none', overflow: 'hidden' }}>
+                {/* Glowing orbs */}
+                <div style={{ position: 'absolute', top: '10%', left: '5%', width: '400px', height: '400px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(212,168,60,0.07) 0%, transparent 70%)', filter: 'blur(40px)', animation: 'orb1 8s ease-in-out infinite alternate' }} />
+                <div style={{ position: 'absolute', bottom: '15%', right: '5%', width: '350px', height: '350px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(192,90,74,0.08) 0%, transparent 70%)', filter: 'blur(50px)', animation: 'orb2 10s ease-in-out infinite alternate' }} />
+                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: '600px', height: '600px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(184,144,42,0.04) 0%, transparent 70%)', filter: 'blur(60px)', animation: 'orb3 12s ease-in-out infinite alternate' }} />
+
+                {/* Subtle grid */}
+                <div style={{
+                    position: 'absolute', inset: 0,
+                    backgroundImage: 'linear-gradient(rgba(184,144,42,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(184,144,42,0.03) 1px, transparent 1px)',
+                    backgroundSize: '60px 60px'
+                }} />
+
+                {/* Corner vignette */}
+                <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.6) 100%)' }} />
+
+                {/* Floating particles */}
+                {[...Array(12)].map((_, i) => (
+                    <div key={i} style={{
+                        position: 'absolute',
+                        width: `${2 + (i % 3)}px`,
+                        height: `${2 + (i % 3)}px`,
+                        borderRadius: '50%',
+                        background: i % 2 === 0 ? 'rgba(212,168,60,0.5)' : 'rgba(192,90,74,0.4)',
+                        left: `${(i * 8.3) % 100}%`,
+                        top: `${(i * 13.7) % 100}%`,
+                        animation: `float${(i % 3) + 1} ${6 + i}s ease-in-out infinite`,
+                        boxShadow: `0 0 6px ${i % 2 === 0 ? 'rgba(212,168,60,0.6)' : 'rgba(192,90,74,0.5)'}`
+                    }} />
+                ))}
+            </div>
+
+            <style>{`
+                @keyframes orb1 { from { transform: translate(0,0) scale(1); } to { transform: translate(40px,30px) scale(1.1); } }
+                @keyframes orb2 { from { transform: translate(0,0) scale(1); } to { transform: translate(-30px,-40px) scale(1.15); } }
+                @keyframes orb3 { from { transform: translate(-50%,-50%) scale(1); } to { transform: translate(-50%,-50%) scale(1.08); } }
+                @keyframes float1 { 0%,100% { transform: translateY(0px) rotate(0deg); opacity: 0.5; } 50% { transform: translateY(-30px) rotate(180deg); opacity: 1; } }
+                @keyframes float2 { 0%,100% { transform: translateY(0px) rotate(0deg); opacity: 0.4; } 50% { transform: translateY(-50px) rotate(90deg); opacity: 0.9; } }
+                @keyframes float3 { 0%,100% { transform: translateY(0px); opacity: 0.3; } 50% { transform: translateY(-20px); opacity: 0.8; } }
+            `}</style>
+
             <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
                 <Navbar />
                 

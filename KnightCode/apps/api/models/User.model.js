@@ -48,6 +48,8 @@ const userSchema = new mongoose.Schema({
     notifications: { type: Boolean, default: true }
   },
   battleCount: { type: Number, default: 0 },
+  questionsSolved: { type: Number, default: 0 },
+  solvedQuestionIds: [{ type: String }],
   createdAt: {
     type: Date,
     default: Date.now

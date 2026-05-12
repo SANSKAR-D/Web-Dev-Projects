@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const Topic = require('../models/Problem.model');
-const { optionalProtect, adminProtect } = require('../middleware/auth.middleware');
+const User = require('../models/User.model');
+const { optionalProtect, adminProtect, protect } = require('../middleware/auth.middleware');
 
 // @desc    Get questions by topic name and difficulty level
 // @route   GET /api/problems?topic=Hash Table&difficulty=Easy
@@ -171,8 +172,8 @@ router.post('/run', async (req, res) => {
 });
 // @desc    Submit solution for a question
 // @route   POST /api/problems/submit
-// @access  Public (Should be private in production)
-router.post('/submit', async (req, res) => {
+// @access  Public (optionally authenticated)
+router.post('/submit', optionalProtect, async (req, res) => {
   try {
     const { id, topic, difficulty, language, code } = req.body;
 
@@ -201,6 +202,18 @@ router.post('/submit', async (req, res) => {
     // Run the judge
     const result = await executor.judge(question, language, code);
     
+    // If accepted and user is logged in, update their solved count (dedup)
+    if (result.overallStatus === 'Accepted' && req.user) {
+      const questionKey = `${topic}_${difficulty}_${id}`;
+      await User.updateOne(
+        { _id: req.user._id, solvedQuestionIds: { $ne: questionKey } },
+        {
+          $inc: { questionsSolved: 1 },
+          $push: { solvedQuestionIds: questionKey }
+        }
+      );
+    }
+
     res.json(result);
   } catch (error) {
     console.error('Submission route error:', error);
@@ -208,5 +221,20 @@ router.post('/submit', async (req, res) => {
   }
 });
 
-module.exports = router;
+// @desc    Get top 10 users by questions solved
+// @route   GET /api/problems/leaderboard
+// @access  Public
+router.get('/leaderboard', async (req, res) => {
+  try {
+    const leaders = await User.find({}, 'username questionsSolved createdAt')
+      .sort({ questionsSolved: -1 })
+      .limit(10)
+      .lean();
+    res.json(leaders);
+  } catch (error) {
+    console.error('Leaderboard route error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
 
+module.exports = router;

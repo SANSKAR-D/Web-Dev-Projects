@@ -22,9 +22,7 @@ const Navbar = () => {
               <NavLink className={navLinkClassName} to="/home" style={{ padding: '0.5rem 1.5rem', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1px' }}>
                 Home    
               </NavLink>
-              <NavLink className={navLinkClassName} to="/chakras" style={{ padding: '0.5rem 1.5rem', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                Chakras    
-              </NavLink>
+
               <NavLink className={navLinkClassName} to="/sanctum" style={{ padding: '0.5rem 1.5rem', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1px' }}>
                 Sanctum   
               </NavLink>

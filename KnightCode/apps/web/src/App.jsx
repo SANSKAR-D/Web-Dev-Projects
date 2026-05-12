@@ -11,7 +11,7 @@ import ProblemsPage from './pages/ProblemsPage.jsx';
 import GrainOverlay from './components/layout/GrainOverlay.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import { AuthProvider } from './hooks/useAuth.jsx';
-import Chakras from './pages/Chakras.jsx';
+
 import Leaderboard from './pages/Leaderboard.jsx';
 import Astraverse from './pages/Astraverse.jsx';
 import Arena from './pages/Arena.jsx';
@@ -46,7 +46,7 @@ function App() {
             <Route path="/sanctum" element={<Sanctum />} />
             <Route path="/difficulty" element={<TopicArena />} />
             <Route path="/forge" element={<ProblemsPage />} />
-            <Route path="/chakras" element={<Chakras />} />
+
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/astraverse" element={<Astraverse />} />
             <Route path="/arena" element={<Arena />} />
