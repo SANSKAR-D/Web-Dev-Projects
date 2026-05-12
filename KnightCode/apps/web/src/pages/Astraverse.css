@@ -1,0 +1,160 @@
+/* ── Astraverse Page ────────────────────────────────── */
+.astraverse-container {
+  min-height: 100vh;
+  width: 100vw;
+  padding-top: 100px;
+  overflow-x: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--text-main, #F0E0B0);
+}
+
+.astraverse-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  z-index: 10;
+}
+
+.astraverse-title {
+  font-family: var(--font-display, 'Playfair Display', serif);
+  font-size: 3.5rem;
+  color: var(--gold-bright, #E8C060);
+  font-style: italic;
+  text-shadow: 0 4px 25px rgba(0,0,0,0.9);
+  margin-bottom: 0.5rem;
+}
+
+.astraverse-subtitle {
+  font-family: var(--font-body, 'IM Fell English', serif);
+  font-size: 1.2rem;
+  color: var(--text-muted, #9A8060);
+}
+
+/* ── Control Panel ────────────────────────────────── */
+.ds-controls {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  z-index: 10;
+  background: rgba(13, 11, 9, 0.7);
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  border: 1px solid rgba(184, 144, 42, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.ds-btn {
+  background: transparent;
+  border: 1px solid rgba(184, 144, 42, 0.5);
+  color: #F0E0B0;
+  padding: 0.5rem 1.5rem;
+  font-family: var(--font-display, 'Playfair Display', serif);
+  font-size: 1.1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.ds-btn:hover {
+  background: rgba(184, 144, 42, 0.1);
+  border-color: #E8C060;
+  box-shadow: 0 0 15px rgba(232, 192, 96, 0.3);
+}
+
+.ds-btn.active {
+  background: rgba(184, 144, 42, 0.2);
+  border-color: #E8C060;
+  color: #E8C060;
+  box-shadow: 0 0 20px rgba(232, 192, 96, 0.4);
+}
+
+/* ── Visualizer Container ────────────────────────── */
+.visualizer-container {
+  width: 90%;
+  max-width: 1000px;
+  height: 500px;
+  background: rgba(13, 11, 9, 0.6);
+  border: 1px solid rgba(184, 144, 42, 0.3);
+  border-radius: 16px;
+  backdrop-filter: blur(12px);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.8), inset 0 0 30px rgba(184, 144, 42, 0.05);
+}
+
+.ds-action-panel {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.action-input {
+  background: rgba(0,0,0,0.5);
+  border: 1px solid rgba(184, 144, 42, 0.5);
+  color: #F0E0B0;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-family: monospace;
+  width: 100px;
+  outline: none;
+}
+
+.action-input:focus {
+  border-color: #E8C060;
+  box-shadow: 0 0 10px rgba(232, 192, 96, 0.3);
+}
+
+.action-btn {
+  background: rgba(184, 144, 42, 0.1);
+  border: 1px solid rgba(184, 144, 42, 0.5);
+  color: #E8C060;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: var(--font-body, 'IM Fell English', serif);
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+  background: rgba(184, 144, 42, 0.3);
+  border-color: #E8C060;
+}
+
+.ds-render-area {
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+/* ── Node Styles ────────────────────────────────── */
+.ds-node {
+  background: linear-gradient(135deg, rgba(232, 192, 96, 0.1) 0%, rgba(184, 144, 42, 0.05) 100%);
+  border: 2px solid #B8902A;
+  box-shadow: 0 0 15px rgba(184, 144, 42, 0.2), inset 0 0 10px rgba(184, 144, 42, 0.1);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #F0E0B0;
+  font-family: monospace;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.ds-index {
+  font-size: 0.8rem;
+  color: #9A8060;
+  position: absolute;
+  bottom: -25px;
+}
