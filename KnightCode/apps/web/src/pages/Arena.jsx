@@ -5,6 +5,7 @@ import ArenaLobby from '../components/arena/ArenaLobby.jsx';
 import ArenaBattle from '../components/arena/ArenaBattle.jsx';
 import ArenaResults from '../components/arena/ArenaResults.jsx';
 import { io } from 'socket.io-client';
+import usePageTitle from '../hooks/usePageTitle.js';
 
 const generateUUID = () => {
     if (typeof crypto !== 'undefined' && crypto.randomUUID) {
@@ -14,6 +15,7 @@ const generateUUID = () => {
 };
 
 const Arena = () => {
+    usePageTitle('Arena');
     const [socket, setSocket] = useState(null);
     const [playerId, setPlayerId] = useState('');
     const [view, setView] = useState('lobby'); // 'lobby', 'battle', 'results'

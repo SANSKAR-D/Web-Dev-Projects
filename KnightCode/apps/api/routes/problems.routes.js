@@ -3,6 +3,10 @@ const router = express.Router();
 const Topic = require('../models/Problem.model');
 const User = require('../models/User.model');
 const { optionalProtect, adminProtect, protect } = require('../middleware/auth.middleware');
+const { submitLimiter, runLimiter } = require('../middleware/rateLimiter');
+
+const ALLOWED_LANGUAGES = ['cpp', 'python', 'javascript'];
+const MAX_CODE_LENGTH = 50000; // 50KB
 
 // @desc    Get questions by topic name and difficulty level
 // @route   GET /api/problems?topic=Hash Table&difficulty=Easy
@@ -148,37 +152,48 @@ router.put('/question', adminProtect, async (req, res) => {
 
 const executor = require('../judge/executor');
 
-// ... existing code ...
-
 // @desc    Run custom test cases for a question
 // @route   POST /api/problems/run
-// @access  Public (Should be private in production)
-router.post('/run', async (req, res) => {
+// @access  Public
+router.post('/run', runLimiter, async (req, res) => {
   try {
     const { language, code, testCases } = req.body;
 
     if (!language || !code || !Array.isArray(testCases)) {
       return res.status(400).json({ message: 'Missing required fields' });
     }
+    if (!ALLOWED_LANGUAGES.includes(language)) {
+      return res.status(400).json({ message: 'Unsupported language' });
+    }
+    if (typeof code !== 'string' || code.length > MAX_CODE_LENGTH) {
+      return res.status(400).json({ message: `Code must be under ${MAX_CODE_LENGTH / 1000}KB` });
+    }
+    if (testCases.length > 10) {
+      return res.status(400).json({ message: 'Maximum 10 custom test cases allowed' });
+    }
 
-    // Run the custom test cases
     const result = await executor.runCustom(language, code, testCases);
-    
     res.json(result);
   } catch (error) {
     console.error('Run route error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({ message: 'Server error' });
   }
 });
 // @desc    Submit solution for a question
 // @route   POST /api/problems/submit
 // @access  Public (optionally authenticated)
-router.post('/submit', optionalProtect, async (req, res) => {
+router.post('/submit', submitLimiter, optionalProtect, async (req, res) => {
   try {
     const { id, topic, difficulty, language, code } = req.body;
 
     if (!id || !topic || !difficulty || !language || !code) {
       return res.status(400).json({ message: 'Missing required fields' });
+    }
+    if (!ALLOWED_LANGUAGES.includes(language)) {
+      return res.status(400).json({ message: 'Unsupported language' });
+    }
+    if (typeof code !== 'string' || code.length > MAX_CODE_LENGTH) {
+      return res.status(400).json({ message: `Code must be under ${MAX_CODE_LENGTH / 1000}KB` });
     }
 
     const level = difficulty.charAt(0).toUpperCase() + difficulty.slice(1).toLowerCase();
@@ -217,23 +232,35 @@ router.post('/submit', optionalProtect, async (req, res) => {
     res.json(result);
   } catch (error) {
     console.error('Submission route error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
 // @desc    Get top 10 users by questions solved
 // @route   GET /api/problems/leaderboard
 // @access  Public
+let leaderboardCache = { data: null, timestamp: 0 };
+const LEADERBOARD_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
 router.get('/leaderboard', async (req, res) => {
   try {
+    const now = Date.now();
+    if (leaderboardCache.data && (now - leaderboardCache.timestamp) < LEADERBOARD_CACHE_TTL) {
+      return res.json(leaderboardCache.data);
+    }
+
     const leaders = await User.find({}, 'username questionsSolved createdAt')
       .sort({ questionsSolved: -1 })
       .limit(10)
       .lean();
+
+    leaderboardCache = { data: leaders, timestamp: now };
     res.json(leaders);
   } catch (error) {
     console.error('Leaderboard route error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    // Serve stale cache if DB fails
+    if (leaderboardCache.data) return res.json(leaderboardCache.data);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 

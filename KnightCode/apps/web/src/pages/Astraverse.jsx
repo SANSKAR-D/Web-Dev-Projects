@@ -9,9 +9,11 @@ import HashTableVisualizer from '../components/ds/HashTableVisualizer.jsx';
 import BinarySearchVisualizer from '../components/ds/BinarySearchVisualizer.jsx';
 import BSTVisualizer from '../components/ds/BSTVisualizer.jsx';
 import GraphVisualizer from '../components/ds/GraphVisualizer.jsx';
+import usePageTitle from '../hooks/usePageTitle.js';
 import './Astraverse.css';
 
 const Astraverse = () => {
+    usePageTitle('Astraverse');
     const [activeDS, setActiveDS] = useState(() => {
         return localStorage.getItem('knightcode_astraverse_ds') || 'Array';
     });

@@ -5,15 +5,21 @@ const helmet = require('helmet');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/auth.routes');
 const problemsRoutes = require('./routes/problems.routes');
+const { globalLimiter } = require('./middleware/rateLimiter');
 
 const http = require('http');
 const { Server } = require('socket.io');
 
 const app = express();
 const server = http.createServer(app);
+
+// CORS configuration
+const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:5173';
+const allowedOrigins = CORS_ORIGIN.split(',').map(o => o.trim());
+
 const io = new Server(server, {
   cors: {
-    origin: '*', // For development, allow all origins
+    origin: allowedOrigins,
     methods: ['GET', 'POST']
   }
 });
@@ -24,9 +30,23 @@ const PORT = process.env.PORT || 5000;
 connectDB();
 
 // Middleware
-app.use(express.json({ limit: '10mb' }));
-app.use(cors());
-app.use(helmet());
+app.use(express.json({ limit: '50kb' })); // Cap request body size
+app.use(cors({ origin: allowedOrigins }));
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.jsdelivr.net"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      connectSrc: ["'self'", "ws:", "wss:", ...allowedOrigins],
+      imgSrc: ["'self'", "data:", "blob:"],
+      workerSrc: ["'self'", "blob:"]
+    }
+  },
+  crossOriginEmbedderPolicy: false
+}));
+app.use(globalLimiter);
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -42,8 +62,19 @@ require('./sockets/arena')(io);
 // Error Handling Middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ message: 'Server Error', error: err.message });
+  res.status(500).json({ message: 'Server Error', error: process.env.NODE_ENV === 'production' ? undefined : err.message });
 });
+
+// Graceful shutdown
+const gracefulShutdown = (signal) => {
+  console.log(`${signal} received. Shutting down gracefully...`);
+  server.close(() => {
+    console.log('HTTP server closed.');
+    process.exit(0);
+  });
+};
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

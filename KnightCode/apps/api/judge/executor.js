@@ -4,23 +4,32 @@ const path = require('path');
 const os = require('os');
 
 class Executor {
-  constructor() {
-    this.tempDir = path.join(os.tmpdir(), 'knightcode_judge_' + Date.now());
-    if (!fs.existsSync(this.tempDir)) {
-      fs.mkdirSync(this.tempDir, { recursive: true });
+  createTempDir() {
+    const dir = path.join(os.tmpdir(), 'knightcode_judge_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8));
+    fs.mkdirSync(dir, { recursive: true });
+    return dir;
+  }
+
+  cleanupDir(dir) {
+    try {
+      if (dir && fs.existsSync(dir)) {
+        fs.rmSync(dir, { recursive: true, force: true });
+      }
+    } catch (e) {
+      console.error('Cleanup error:', e.message);
     }
   }
 
-  async compile(language, code) {
+  async compile(language, code, tempDir) {
     if (language === 'cpp') {
-      const sourcePath = path.join(this.tempDir, 'solution.cpp');
+      const sourcePath = path.join(tempDir, 'solution.cpp');
       const binName = 'solution'; // Linux executable inside container
       fs.writeFileSync(sourcePath, code);
 
       return new Promise((resolve, reject) => {
         const compiler = spawn('docker', [
           'run', '--rm', 
-          '-v', `${this.tempDir}:/app`, 
+          '-v', `${tempDir}:/app`, 
           '-w', '/app', 
           'knightcode-judge', 
           'g++', 'solution.cpp', '-o', binName, '-O3', '-std=c++17'
@@ -38,20 +47,20 @@ class Executor {
     return null; // No compilation needed for Python/JS
   }
 
-  async run(language, binPath, code, input, timeLimit = 1000, memoryLimit = 268435456) {
+  async run(language, binPath, code, input, timeLimit = 1000, memoryLimit = 268435456, tempDir) {
     let command = 'docker';
     let args = [];
     
     const sourceName = language === 'cpp' ? binPath : `solution.${language === 'python' ? 'py' : 'js'}`;
 
     if (language !== 'cpp') {
-      fs.writeFileSync(path.join(this.tempDir, sourceName), code);
+      fs.writeFileSync(path.join(tempDir, sourceName), code);
     }
 
     const baseArgs = [
       'run', '-i', '--rm', 
       '--net=none', '--cpus=0.5', '--memory=256m', 
-      '-v', `${this.tempDir}:/app`, 
+      '-v', `${tempDir}:/app`, 
       '-w', '/app', 
       '--user', 'judgeuser', 
       'knightcode-judge'
@@ -99,8 +108,9 @@ class Executor {
   }
 
   async judge(question, language, code) {
+    const tempDir = this.createTempDir();
     try {
-      const binPath = await this.compile(language, code);
+      const binPath = await this.compile(language, code, tempDir);
       const results = [];
       let allPassed = true;
       const CHUNK_SIZE = 10; // Run 5 test cases in parallel
@@ -113,7 +123,7 @@ class Executor {
         const chunk = question.testCases.slice(i, i + CHUNK_SIZE);
         
         const chunkPromises = chunk.map(async (testCase) => {
-          const result = await this.run(language, binPath || code, code, testCase.input, limitTime, limitMem);
+          const result = await this.run(language, binPath || code, code, testCase.input, limitTime, limitMem, tempDir);
           const passed = result.status === 'Success' && result.output === testCase.expectedOutput;
           
           return {
@@ -158,13 +168,14 @@ class Executor {
         message: err.message
       };
     } finally {
-      // Cleanup? Maybe keep for a bit or delete
+      this.cleanupDir(tempDir);
     }
   }
 
   async runCustom(language, code, testCases) {
+    const tempDir = this.createTempDir();
     try {
-      const binPath = await this.compile(language, code);
+      const binPath = await this.compile(language, code, tempDir);
       const results = [];
       const CHUNK_SIZE = 10;
 
@@ -172,7 +183,7 @@ class Executor {
         const chunk = testCases.slice(i, i + CHUNK_SIZE);
         
         const chunkPromises = chunk.map(async (testCase) => {
-          const result = await this.run(language, binPath || code, code, testCase.input, 1000);
+          const result = await this.run(language, binPath || code, code, testCase.input, 1000, undefined, tempDir);
           
           return {
             input: testCase.input,
@@ -194,12 +205,8 @@ class Executor {
         overallStatus: 'Error',
         message: err.message
       };
-    }
-  }
-
-  cleanup() {
-    if (fs.existsSync(this.tempDir)) {
-      fs.rmSync(this.tempDir, { recursive: true, force: true });
+    } finally {
+      this.cleanupDir(tempDir);
     }
   }
 }

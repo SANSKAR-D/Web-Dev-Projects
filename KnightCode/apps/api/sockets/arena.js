@@ -203,4 +203,22 @@ module.exports = (io) => {
             }
         });
     });
+
+    // Cleanup stale arenas every 5 minutes (rooms older than 30 minutes)
+    const STALE_ARENA_THRESHOLD = 30 * 60 * 1000;
+    setInterval(() => {
+        const now = Date.now();
+        for (const [roomCode, arena] of activeArenas) {
+            if (arena.startTime && (now - arena.startTime) > STALE_ARENA_THRESHOLD) {
+                console.log(`Cleaning up stale arena: ${roomCode}`);
+                io.to(`arena_${roomCode}`).emit('arenaExpired', { reason: 'Arena timed out due to inactivity.' });
+                activeArenas.delete(roomCode);
+            }
+            // Also clean waiting rooms older than 10 minutes
+            if (arena.status === 'waiting' && arena.createdAt && (now - arena.createdAt) > 10 * 60 * 1000) {
+                console.log(`Cleaning up stale waiting room: ${roomCode}`);
+                activeArenas.delete(roomCode);
+            }
+        }
+    }, 5 * 60 * 1000);
 };

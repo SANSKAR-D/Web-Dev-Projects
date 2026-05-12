@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from '../components/layout/Navbar.jsx';
 import SacredGeometryCanvas from '../components/three/SacredGeometryCanvas.jsx';
 import client from '../api/client.js';
+import usePageTitle from '../hooks/usePageTitle.js';
 
 const REFRESH_INTERVAL = 60 * 60 * 1000; // 1 hour in ms
 
@@ -13,6 +14,7 @@ const RANK_STYLES = {
 };
 
 const Leaderboard = () => {
+    usePageTitle('Leaderboard');
     const [leaders, setLeaders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);

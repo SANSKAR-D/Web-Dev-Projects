@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
 import client from '../api/client.js';
 import { useAuth } from '../hooks/useAuth.jsx';
+import usePageTitle from '../hooks/usePageTitle.js';
 import './SolvePage.css';
 
 /* ── Language templates ─────────────────────────── */
@@ -129,6 +130,7 @@ const monacoTheme = {
 
 /* ── Component ───────────────────────────────────── */
 const SolvePage = () => {
+  usePageTitle('Solve');
   const { user } = useAuth();
   const isAdmin = user?.email === 'sanskar.20253248@mnnit.ac.in';
 

@@ -10,6 +10,7 @@ import TopicArena from './pages/TopicArena.jsx';
 import ProblemsPage from './pages/ProblemsPage.jsx';
 import GrainOverlay from './components/layout/GrainOverlay.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
+import ErrorBoundary from './components/ErrorBoundary.jsx';
 import { AuthProvider } from './hooks/useAuth.jsx';
 
 import Leaderboard from './pages/Leaderboard.jsx';
@@ -32,6 +33,7 @@ function App() {
     >
       <AuthProvider>
         <BrowserRouter>
+        <ErrorBoundary>
         {/* SVG grain filter injected into DOM to match architecture */}
         <GrainOverlay />
         
@@ -55,8 +57,14 @@ function App() {
 
           <Route path="/" element={<Home />} />
           <Route path="/home" element={<Home />} />
-          <Route path="/*" element={<p>Error 404 Page Not Found</p>} />
+          <Route path="/*" element={
+            <div style={{ minHeight: '100vh', background: '#0D0B09', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#F0E0B0', fontFamily: "'Playfair Display', serif" }}>
+              <div style={{ fontSize: '5rem', color: '#D4A83C', marginBottom: '10px' }}>404</div>
+              <p style={{ color: '#8A7A5A', fontFamily: 'monospace' }}>This page does not exist in the kingdom.</p>
+            </div>
+          } />
         </Routes>
+        </ErrorBoundary>
       </BrowserRouter>
       </AuthProvider>
     </ConfigProvider>
