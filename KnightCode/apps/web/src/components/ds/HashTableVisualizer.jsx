@@ -6,6 +6,7 @@ const NUM_BUCKETS = 5;
 const HashTableVisualizer = () => {
     // Array of arrays (buckets)
     const [buckets, setBuckets] = useState(Array.from({ length: NUM_BUCKETS }, () => []));
+    const [inputKey, setInputKey] = useState('');
     const [inputValue, setInputValue] = useState('');
     const [hashAnimation, setHashAnimation] = useState(null); // { key, hashIndex }
 
@@ -23,17 +24,19 @@ const HashTableVisualizer = () => {
     };
 
     const handleInsert = async () => {
-        if (!inputValue || getTotalElements() >= 25) {
+        if (!inputKey || !inputValue || getTotalElements() >= 25) {
             if (getTotalElements() >= 25) alert("Maximum size of 25 reached!");
             return;
         }
 
-        const key = inputValue;
+        const keyToInsert = inputKey;
+        const valToInsert = inputValue;
+        setInputKey('');
         setInputValue('');
         
         // 1. Animate hashing process
-        const hashIndex = hashString(key);
-        setHashAnimation({ key, hashIndex });
+        const hashIndex = hashString(keyToInsert);
+        setHashAnimation({ key: keyToInsert, hashIndex });
         
         // Wait for animation to show
         await new Promise(r => setTimeout(r, 1000));
@@ -42,7 +45,14 @@ const HashTableVisualizer = () => {
         setHashAnimation(null);
         setBuckets(prevBuckets => {
             const newBuckets = [...prevBuckets];
-            newBuckets[hashIndex] = [...newBuckets[hashIndex], { id: generateId(), key }];
+            
+            // Check if key exists to update value
+            const existingNodeIndex = newBuckets[hashIndex].findIndex(n => n.key === keyToInsert);
+            if (existingNodeIndex !== -1) {
+                newBuckets[hashIndex][existingNodeIndex].value = valToInsert;
+            } else {
+                newBuckets[hashIndex] = [...newBuckets[hashIndex], { id: generateId(), key: keyToInsert, value: valToInsert }];
+            }
             return newBuckets;
         });
     };
@@ -53,14 +63,28 @@ const HashTableVisualizer = () => {
                 <input 
                     type="text" 
                     className="action-input"
-                    placeholder="String Key..." 
+                    placeholder="Key..." 
+                    value={inputKey}
+                    onChange={(e) => setInputKey(e.target.value)}
+                    style={{ width: '80px' }}
+                />
+                <input 
+                    type="text" 
+                    className="action-input"
+                    placeholder="Value..." 
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleInsert()}
+                    style={{ width: '100px' }}
                 />
                 <button className="action-btn" onClick={handleInsert} disabled={hashAnimation !== null}>
-                    Insert (Hash)
+                    Put (Key, Value)
                 </button>
+            </div>
+
+            {/* Hash Function Formula */}
+            <div style={{ color: '#9A8060', fontFamily: 'monospace', fontSize: '0.9rem', marginBottom: '10px' }}>
+                Hash Function: <span style={{ color: '#F0E0B0' }}>h(key) = sum(charCodeAt(char)) % {NUM_BUCKETS}</span>
             </div>
 
             {/* Hashing Animation Display */}
@@ -78,9 +102,9 @@ const HashTableVisualizer = () => {
                 </AnimatePresence>
             </div>
 
-            <div className="ds-render-area" style={{ flexDirection: 'column', gap: '15px', alignItems: 'flex-start', width: '100%', overflowX: 'auto', padding: '20px' }}>
+            <div className="ds-render-area" style={{ flexDirection: 'column', gap: '35px', alignItems: 'center', width: '100%', overflowX: 'auto', padding: '30px 20px' }}>
                 {buckets.map((bucket, bucketIndex) => (
-                    <div key={bucketIndex} style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                    <div key={bucketIndex} style={{ display: 'flex', alignItems: 'center', gap: '20px', width: '100%', maxWidth: '800px' }}>
                         {/* Bucket Label/Head */}
                         <div style={{ 
                             width: '40px', 
@@ -134,9 +158,21 @@ const HashTableVisualizer = () => {
                                         animate={{ opacity: 1, scale: 1, x: 0 }}
                                         exit={{ opacity: 0, scale: 0.5 }}
                                         className="ds-node"
-                                        style={{ width: 'auto', minWidth: '60px', height: '40px', padding: '0 10px', fontSize: '1rem' }}
+                                        style={{ 
+                                            width: 'auto', 
+                                            minWidth: '80px', 
+                                            height: '40px', 
+                                            padding: '0 10px', 
+                                            fontSize: '0.9rem',
+                                            display: 'flex',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            gap: '5px'
+                                        }}
                                     >
-                                        {node.key}
+                                        <span style={{ color: '#E8C060' }}>{node.key}</span>
+                                        <span style={{ color: '#9A8060' }}>:</span>
+                                        <span>{node.value}</span>
                                     </motion.div>
                                 </React.Fragment>
                             ))}

@@ -59,7 +59,7 @@ const ArrayVisualizer = () => {
                 <button className="action-btn" onClick={handleShift}>Shift (Start)</button>
             </div>
 
-            <div className="ds-render-area" style={{ flexWrap: 'wrap', gap: '10px' }}>
+            <div className="ds-render-area" style={{ flexWrap: 'wrap', gap: '40px 10px', marginTop: '10px' }}>
                 <AnimatePresence mode="popLayout">
                     {array.map((item, index) => (
                         <motion.div

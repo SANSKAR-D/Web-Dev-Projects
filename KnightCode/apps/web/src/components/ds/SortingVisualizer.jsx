@@ -95,22 +95,22 @@ const SortingVisualizer = () => {
                             layout
                             transition={{ type: "spring", stiffness: 300, damping: 20 }}
                             style={{
-                                width: '30px',
+                                width: '35px', // slightly wider to fit 3 digits if needed
                                 height: `${item.value * 2}px`,
                                 backgroundColor: color,
                                 border: '1px solid rgba(0,0,0,0.5)',
                                 borderRadius: '4px 4px 0 0',
                                 display: 'flex',
                                 justifyContent: 'center',
-                                alignItems: 'flex-end',
-                                paddingBottom: '5px',
+                                alignItems: 'flex-start', // align to top of the bar
+                                paddingTop: '5px', // padding from top
                                 color: '#111',
                                 fontWeight: 'bold',
                                 fontSize: '0.8rem',
                                 boxShadow: comparingIndices.includes(index) ? '0 0 15px rgba(232, 192, 96, 0.6)' : 'none'
                             }}
                         >
-                            <span style={{ transform: 'rotate(-90deg)', marginBottom: '10px' }}>{item.value}</span>
+                            <span>{item.value}</span>
                         </motion.div>
                     );
                 })}

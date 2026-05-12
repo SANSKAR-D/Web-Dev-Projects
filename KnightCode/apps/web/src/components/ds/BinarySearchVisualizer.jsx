@@ -98,7 +98,7 @@ const BinarySearchVisualizer = () => {
                 {found !== null && found !== false && `Target found at index ${found}!`}
             </div>
 
-            <div className="ds-render-area" style={{ flexWrap: 'wrap', gap: '10px' }}>
+            <div className="ds-render-area" style={{ flexWrap: 'wrap', gap: '60px 10px', marginTop: '20px' }}>
                 {array.map((item, index) => {
                     let isLeft = index === left;
                     let isRight = index === right;
