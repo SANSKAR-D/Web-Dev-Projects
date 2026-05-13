@@ -108,6 +108,11 @@ const Arena = () => {
             }
         });
 
+        socket.on('arenaExpired', (data) => {
+            alert(data?.reason || 'Arena has expired.');
+            handleLeaveArena();
+        });
+
         return () => {
             socket.off('matchReady');
             socket.off('battleStarted');
@@ -115,6 +120,7 @@ const Arena = () => {
             socket.off('arenaError');
             socket.off('matchEnd');
             socket.off('opponentDisconnected');
+            socket.off('arenaExpired');
         };
     }, [socket, roomCode]);
 

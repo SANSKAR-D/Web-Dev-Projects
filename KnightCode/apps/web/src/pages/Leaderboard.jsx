@@ -20,6 +20,7 @@ const Leaderboard = () => {
     const [error, setError] = useState(null);
     const [lastRefreshed, setLastRefreshed] = useState(null);
     const [nextRefreshIn, setNextRefreshIn] = useState('');
+    const [refreshCooldown, setRefreshCooldown] = useState(0);
 
     const fetchLeaderboard = useCallback(async () => {
         setLoading(true);
@@ -40,6 +41,25 @@ const Leaderboard = () => {
             setLoading(false);
         }
     }, []);
+
+    // Manual refresh with 60s cooldown
+    const handleManualRefresh = useCallback(() => {
+        if (refreshCooldown > 0 || loading) return;
+        setRefreshCooldown(60);
+        fetchLeaderboard();
+    }, [refreshCooldown, loading, fetchLeaderboard]);
+
+    // Cooldown countdown timer
+    useEffect(() => {
+        if (refreshCooldown <= 0) return;
+        const t = setInterval(() => {
+            setRefreshCooldown(prev => {
+                if (prev <= 1) { clearInterval(t); return 0; }
+                return prev - 1;
+            });
+        }, 1000);
+        return () => clearInterval(t);
+    }, [refreshCooldown]);
 
     // On mount, check if we have a fresh cache (< 1 hour old)
     useEffect(() => {
@@ -170,22 +190,22 @@ const Leaderboard = () => {
                                 Next refresh in: <span style={{ color: '#D4A83C' }}>{nextRefreshIn}</span>
                             </span>
                             <button
-                                onClick={fetchLeaderboard}
-                                disabled={loading}
+                                onClick={handleManualRefresh}
+                                disabled={loading || refreshCooldown > 0}
                                 style={{
                                     background: 'transparent',
                                     border: '1px solid rgba(212, 168, 60, 0.4)',
                                     color: '#D4A83C',
                                     padding: '4px 12px',
                                     borderRadius: '4px',
-                                    cursor: loading ? 'not-allowed' : 'pointer',
+                                    cursor: (loading || refreshCooldown > 0) ? 'not-allowed' : 'pointer',
                                     fontSize: '0.8rem',
                                     fontFamily: 'monospace',
-                                    opacity: loading ? 0.5 : 1,
+                                    opacity: (loading || refreshCooldown > 0) ? 0.5 : 1,
                                     transition: 'all 0.2s ease'
                                 }}
                             >
-                                {loading ? '↻ Refreshing...' : '↻ Refresh Now'}
+                                {loading ? '↻ Refreshing...' : refreshCooldown > 0 ? `↻ Wait ${refreshCooldown}s` : '↻ Refresh Now'}
                             </button>
                         </div>
                     </motion.div>

@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const Topic = require('../models/Problem.model');
+const mongoose = require('mongoose');
 const User = require('../models/User.model');
 const { optionalProtect, adminProtect, protect } = require('../middleware/auth.middleware');
-const { submitLimiter, runLimiter } = require('../middleware/rateLimiter');
+const { submitLimiter, runLimiter, leaderboardLimiter } = require('../middleware/rateLimiter');
 
 const ALLOWED_LANGUAGES = ['cpp', 'python', 'javascript'];
 const MAX_CODE_LENGTH = 50000; // 50KB
@@ -33,12 +34,13 @@ router.get('/', async (req, res) => {
 
     const questions = topicDoc.difficulties[0].questions || [];
 
-    // Sort questions by acceptance descending (acceptance is stored as "55.8%") and strip heavy fields
+    // Sort questions by acceptance descending and strip heavy fields
+    // Override acceptance to '0%' for questions with no real submissions (legacy dummy data)
     const sorted = questions.map(q => ({
       _id: q._id,
       serialNo: q.serialNo,
       title: q.title,
-      acceptance: q.acceptance,
+      acceptance: (!q.totalSubmissions || q.totalSubmissions === 0) ? '0%' : q.acceptance,
       link: q.link
     })).sort((a, b) => {
       const aVal = parseFloat(a.acceptance) || 0;
@@ -152,6 +154,37 @@ router.put('/question', adminProtect, async (req, res) => {
 
 const executor = require('../judge/executor');
 
+// Debounced acceptance percentage recalculation
+// Groups rapid submissions and only writes the acceptance string once per 5 seconds per question
+const acceptanceTimers = new Map();
+const scheduleAcceptanceUpdate = (topicName, level, questionId) => {
+  const key = `${topicName}_${level}_${questionId}`;
+  if (acceptanceTimers.has(key)) clearTimeout(acceptanceTimers.get(key));
+  
+  acceptanceTimers.set(key, setTimeout(async () => {
+    acceptanceTimers.delete(key);
+    try {
+      const qObjectId = new mongoose.Types.ObjectId(questionId);
+      const doc = await Topic.findOne(
+        { name: topicName, 'difficulties.level': level },
+        { 'difficulties.$': 1 }
+      ).lean();
+      if (!doc || !doc.difficulties?.[0]) return;
+      const q = doc.difficulties[0].questions.find(q => q._id.toString() === questionId);
+      if (!q || !q.totalSubmissions) return;
+
+      const pct = ((q.acceptedSubmissions / q.totalSubmissions) * 100).toFixed(1) + '%';
+      await Topic.updateOne(
+        { name: topicName, 'difficulties.level': level, 'difficulties.questions._id': qObjectId },
+        { $set: { 'difficulties.$[diff].questions.$[quest].acceptance': pct } },
+        { arrayFilters: [{ 'diff.level': level }, { 'quest._id': qObjectId }] }
+      );
+    } catch (err) {
+      console.error('Acceptance recalculation error:', err);
+    }
+  }, 5000));
+};
+
 // @desc    Run custom test cases for a question
 // @route   POST /api/problems/run
 // @access  Public
@@ -217,20 +250,40 @@ router.post('/submit', submitLimiter, optionalProtect, async (req, res) => {
     // Run the judge
     const result = await executor.judge(question, language, code);
     
+    // Update acceptance percentage counters
+    const isAccepted = result.overallStatus === 'Accepted';
+    const questionObjectId = new mongoose.Types.ObjectId(id);
+    const incFields = { 'difficulties.$[diff].questions.$[quest].totalSubmissions': 1 };
+    if (isAccepted) {
+      incFields['difficulties.$[diff].questions.$[quest].acceptedSubmissions'] = 1;
+    }
+
+    await Topic.updateOne(
+      { name: topic, 'difficulties.level': level, 'difficulties.questions._id': questionObjectId },
+      { $inc: incFields },
+      { arrayFilters: [{ 'diff.level': level }, { 'quest._id': questionObjectId }] }
+    );
+
+    // Debounced acceptance recalculation (5 second delay per question)
+    scheduleAcceptanceUpdate(topic, level, id);
+
     // If accepted and user is logged in, update their solved count (dedup)
-    if (result.overallStatus === 'Accepted' && req.user) {
+    if (isAccepted && req.user) {
       const questionKey = `${topic}_${difficulty}_${id}`;
       const diffKey = `solvedByDifficulty.${level.toLowerCase()}`;
       
-      // Single atomic update: record submission date + dedup solve count
+      // Always record submission date for heatmap
+      await User.updateOne(
+        { _id: req.user._id },
+        { $push: { submissionDates: { $each: [new Date()], $slice: -365 } } }
+      );
+
+      // Increment solve count only for first-time solves (dedup)
       await User.updateOne(
         { _id: req.user._id, solvedQuestionIds: { $ne: questionKey } },
         {
           $inc: { questionsSolved: 1, [diffKey]: 1 },
-          $push: { 
-            solvedQuestionIds: questionKey,
-            submissionDates: { $each: [new Date()], $slice: -365 }
-          }
+          $push: { solvedQuestionIds: questionKey }
         }
       );
     }
@@ -248,7 +301,7 @@ router.post('/submit', submitLimiter, optionalProtect, async (req, res) => {
 let leaderboardCache = { data: null, timestamp: 0 };
 const LEADERBOARD_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-router.get('/leaderboard', async (req, res) => {
+router.get('/leaderboard', leaderboardLimiter, async (req, res) => {
   try {
     const now = Date.now();
     if (leaderboardCache.data && (now - leaderboardCache.timestamp) < LEADERBOARD_CACHE_TTL) {

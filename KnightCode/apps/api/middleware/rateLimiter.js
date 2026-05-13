@@ -45,4 +45,22 @@ const runLimiter = rateLimit({
   legacyHeaders: false
 });
 
-module.exports = { globalLimiter, loginLimiter, registerLimiter, submitLimiter, runLimiter };
+// Limiter for forgot password (abuse prevention)
+const forgotPasswordLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5,
+  message: { message: 'Too many password reset requests. Please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+// Limiter for leaderboard refresh
+const leaderboardLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000,
+  max: 5,
+  message: { message: 'Leaderboard rate limit reached. Please wait before refreshing again.' },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+module.exports = { globalLimiter, loginLimiter, registerLimiter, submitLimiter, runLimiter, forgotPasswordLimiter, leaderboardLimiter };

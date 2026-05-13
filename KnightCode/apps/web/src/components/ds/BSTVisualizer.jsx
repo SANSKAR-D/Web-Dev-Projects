@@ -13,6 +13,7 @@ const BSTVisualizer = () => {
     });
     const [inputValue, setInputValue] = useState('');
     const [animatingNodeId, setAnimatingNodeId] = useState(null);
+    const [errorMessage, setErrorMessage] = useState('');
 
     useEffect(() => {
         localStorage.setItem('kc_ds_bst_nodes', JSON.stringify(nodes));
@@ -28,14 +29,26 @@ const BSTVisualizer = () => {
     
     const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
+    const showError = (msg) => {
+        setErrorMessage(msg);
+        setTimeout(() => setErrorMessage(''), 3000);
+    };
+
     const insertNode = async () => {
         if (!inputValue || nodes.length >= 25) {
-            if (nodes.length >= 25) alert("Maximum size of 25 reached!");
+            if (nodes.length >= 25) showError('Maximum size of 25 reached!');
             return;
         }
 
         const value = parseInt(inputValue, 10);
+        if (isNaN(value)) return;
         setInputValue('');
+
+        // Reject duplicate values — BST requires unique values
+        if (nodes.some(n => n.value === value)) {
+            showError('Value already exists in the BST! BST requires unique values.');
+            return;
+        }
 
         const newNodeId = generateId();
 
@@ -73,8 +86,8 @@ const BSTVisualizer = () => {
                 } else {
                     currNode = leftChild;
                 }
-            } else {
-                // Go right (allowing duplicates to right)
+            } else if (value > currNode.value) {
+                // Go right (strict greater than — no duplicates)
                 const rightChild = nodes.find(n => n.parentId === currNode.id && !n.isLeft);
                 if (!rightChild) {
                     finalX = currNode.x + offset;
@@ -115,6 +128,33 @@ const BSTVisualizer = () => {
                     Insert
                 </button>
             </div>
+
+            {/* Inline error/info message */}
+            <AnimatePresence>
+                {errorMessage && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.25 }}
+                        style={{
+                            padding: '8px 16px',
+                            borderRadius: '8px',
+                            background: 'rgba(192, 90, 74, 0.12)',
+                            border: '1px solid rgba(192, 90, 74, 0.35)',
+                            color: '#C05A4A',
+                            fontSize: '0.82rem',
+                            fontFamily: "'Fira Code', monospace",
+                            marginBottom: '8px',
+                            textAlign: 'center',
+                            width: '100%',
+                            maxWidth: '400px',
+                        }}
+                    >
+                        ⚠ {errorMessage}
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             <div 
                 className="ds-render-area" 

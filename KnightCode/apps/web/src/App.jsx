@@ -17,6 +17,8 @@ import Leaderboard from './pages/Leaderboard.jsx';
 import Astraverse from './pages/Astraverse.jsx';
 import Arena from './pages/Arena.jsx';
 import SolvePage from './pages/SolvePage.jsx';
+import ForgotPassword from './pages/ForgotPassword.jsx';
+import ResetPassword from './pages/ResetPassword.jsx';
 
 function App() {
   return (
@@ -58,6 +60,8 @@ function App() {
 
           <Route path="/" element={<Home />} />
           <Route path="/home" element={<Home />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/*" element={
             <div style={{ minHeight: '100vh', background: '#0D0B09', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#F0E0B0', fontFamily: "'Playfair Display', serif" }}>
               <div style={{ fontSize: '5rem', color: '#D4A83C', marginBottom: '10px' }}>404</div>

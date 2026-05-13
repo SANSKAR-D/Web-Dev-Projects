@@ -205,8 +205,9 @@ module.exports = (io) => {
         });
     });
 
-    // Cleanup stale arenas every 5 minutes (rooms older than 30 minutes)
+    // Cleanup stale arenas every 1 minute (for prompt expiry detection)
     const STALE_ARENA_THRESHOLD = 30 * 60 * 1000;
+    const WAITING_ROOM_EXPIRY = 10 * 60 * 1000; // 10 minutes
     setInterval(() => {
         const now = Date.now();
         for (const [roomCode, arena] of activeArenas) {
@@ -215,11 +216,12 @@ module.exports = (io) => {
                 io.to(`arena_${roomCode}`).emit('arenaExpired', { reason: 'Arena timed out due to inactivity.' });
                 activeArenas.delete(roomCode);
             }
-            // Also clean waiting rooms older than 10 minutes
-            if (arena.status === 'waiting' && arena.createdAt && (now - arena.createdAt) > 10 * 60 * 1000) {
-                console.log(`Cleaning up stale waiting room: ${roomCode}`);
+            // Clean waiting rooms older than 10 minutes and notify the creator
+            if (arena.status === 'waiting' && arena.createdAt && (now - arena.createdAt) > WAITING_ROOM_EXPIRY) {
+                console.log(`Room code expired for waiting room: ${roomCode}`);
+                io.to(`arena_${roomCode}`).emit('arenaExpired', { reason: 'Room code expired. No opponent joined within 10 minutes.' });
                 activeArenas.delete(roomCode);
             }
         }
-    }, 5 * 60 * 1000);
+    }, 1 * 60 * 1000); // Check every 1 minute
 };

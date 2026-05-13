@@ -117,6 +117,28 @@ const AuthPage = ({ mode = "login" }) => {
               placeholder="••••••••"
               className="auth-page__input"
             />
+            {isLogin && (
+              <button
+                type="button"
+                onClick={() => navigate('/forgot-password')}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--gold-mid, #B8902A)',
+                  fontSize: '0.8rem',
+                  cursor: 'pointer',
+                  textAlign: 'right',
+                  padding: '4px 0 0',
+                  fontFamily: 'var(--font-body)',
+                  opacity: 0.8,
+                  transition: 'opacity 0.2s ease',
+                }}
+                onMouseEnter={(e) => e.target.style.opacity = '1'}
+                onMouseLeave={(e) => e.target.style.opacity = '0.8'}
+              >
+                Forgot Password?
+              </button>
+            )}
           </div>
 
           <button type="submit" className="auth-page__submit" disabled={loading}>

@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+
+const ROOM_CODE_EXPIRY = 10 * 60 * 1000; // 10 minutes
 
 const ArenaLobby = ({ socket, playerId, onRoomCreated, onJoinRoom }) => {
     const [joinCode, setJoinCode] = useState('');
@@ -7,6 +9,8 @@ const ArenaLobby = ({ socket, playerId, onRoomCreated, onJoinRoom }) => {
     const [roomCode, setRoomCode] = useState('');
     const [error, setError] = useState('');
     const [copied, setCopied] = useState(false);
+    const [codeTimeLeft, setCodeTimeLeft] = useState(0);
+    const codeCreatedAtRef = useRef(null);
 
     const handleCreateArena = () => {
         setStatus('creating');
@@ -37,6 +41,8 @@ const ArenaLobby = ({ socket, playerId, onRoomCreated, onJoinRoom }) => {
         const handleArenaCreated = (data) => {
             setRoomCode(data.roomCode);
             setStatus('waiting');
+            codeCreatedAtRef.current = Date.now();
+            setCodeTimeLeft(ROOM_CODE_EXPIRY / 1000);
             onRoomCreated(data.roomCode);
         };
 
@@ -53,6 +59,19 @@ const ArenaLobby = ({ socket, playerId, onRoomCreated, onJoinRoom }) => {
             socket.off('arenaError', handleArenaError);
         };
     }, [socket, onRoomCreated]);
+
+    // Code expiry countdown timer
+    useEffect(() => {
+        if (status !== 'waiting' || !codeCreatedAtRef.current) return;
+        const tick = () => {
+            const elapsed = Math.floor((Date.now() - codeCreatedAtRef.current) / 1000);
+            const remaining = Math.max(0, (ROOM_CODE_EXPIRY / 1000) - elapsed);
+            setCodeTimeLeft(remaining);
+        };
+        tick();
+        const t = setInterval(tick, 1000);
+        return () => clearInterval(t);
+    }, [status]);
 
     return (
         <div style={{
@@ -163,6 +182,23 @@ const ArenaLobby = ({ socket, playerId, onRoomCreated, onJoinRoom }) => {
                             >
                                 ⏳ Waiting for opponent...
                             </motion.p>
+
+                            {/* Code expiry countdown */}
+                            <div style={{
+                                marginTop: '12px',
+                                padding: '8px 16px',
+                                borderRadius: '8px',
+                                background: codeTimeLeft <= 60 ? 'rgba(192, 90, 74, 0.1)' : 'rgba(184, 144, 42, 0.06)',
+                                border: `1px solid ${codeTimeLeft <= 60 ? 'rgba(192, 90, 74, 0.3)' : 'rgba(184, 144, 42, 0.15)'}`,
+                                fontSize: '0.78rem',
+                                fontFamily: "'Fira Code', monospace",
+                                color: codeTimeLeft <= 60 ? '#C05A4A' : '#8A7A5A',
+                                transition: 'all 0.3s ease'
+                            }}>
+                                Code expires in: <span style={{ fontWeight: 'bold', color: codeTimeLeft <= 60 ? '#C05A4A' : '#D4A83C' }}>
+                                    {Math.floor(codeTimeLeft / 60).toString().padStart(2, '0')}:{(codeTimeLeft % 60).toString().padStart(2, '0')}
+                                </span>
+                            </div>
                         </motion.div>
                     ) : (
                         <motion.div 

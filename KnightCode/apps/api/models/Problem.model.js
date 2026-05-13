@@ -4,7 +4,9 @@ const mongoose = require('mongoose');
 const questionSchema = new mongoose.Schema({
   serialNo: Number,
   title: String,
-  acceptance: String,
+  acceptance: { type: String, default: '0%' },
+  totalSubmissions: { type: Number, default: 0 },
+  acceptedSubmissions: { type: Number, default: 0 },
   link: String,
   description: String,
   example: String,

@@ -392,7 +392,7 @@ const SolvePage = () => {
                   animate={{ y: 0 }}
                   exit={{ y: 300 }}
                   transition={{ duration: 0.2, ease: 'easeOut' }}
-                  style={{ height: '300px' }}
+                  style={{ height: '300px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
                 >
                   <div className="solve-console-header">
                     <button
@@ -409,7 +409,7 @@ const SolvePage = () => {
                     </button>
                     <button className="solve-console-close" onClick={() => setShowConsole(false)}>✕</button>
                   </div>
-                  <div className="solve-console-body">
+                  <div className="solve-console-body" style={{ overflowY: 'auto', minHeight: 0, flex: 1 }}>
                     {consoleTab === 'testcases' ? (
                       <div>
                         <div className="solve-tc-tabs">
