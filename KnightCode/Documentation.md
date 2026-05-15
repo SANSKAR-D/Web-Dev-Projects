@@ -98,9 +98,9 @@ KnightCode is structured for modern, zero-cost cloud deployment:
 ### 1. Middleware Protections
 Authentication middleware is defined in `apps/api/middleware/auth.middleware.js`:
 - **`protect`**: Blocks unauthenticated requests, decoding the `Bearer` JWT.
-- **`adminProtect`**: A hard-guard enforcing that `req.user.email` rigidly matches the authorized admin address (`sanskar.20253248@mnnit.ac.in`). Rejecting any mismatch returns a `403 Forbidden` response.
+- **`adminProtect`**: A hard-guard enforcing that `req.user.email` rigidly matches the authorized admin address (`[EMAIL_ADDRESS]`). Rejecting any mismatch returns a `403 Forbidden` response.
 
-### 2. Frontend Admin GUI
+### 2. Frontend Admin GUI(Testing Period)
 When parsing a user's logged-in identity via React Context (`useAuth`), components like `SolvePage.jsx` and `ProblemsPage.jsx` branch their rendering payload conditionally.
 - Admins unlock the `⚙ Edit` tab for complete database manipulation.
 - Admins gain a direct 'Delete' action on problem cards to prune the database on the fly.
