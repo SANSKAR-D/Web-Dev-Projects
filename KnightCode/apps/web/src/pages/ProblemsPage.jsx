@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import Navbar from '../components/layout/Navbar.jsx';
 import SacredGeometryCanvas from '../components/three/SacredGeometryCanvas.jsx';
 import client from '../api/client.js';
+import { useAuth } from '../hooks/useAuth.jsx';
 import './ProblemsPage.css';
 
 const difficultyMeta = {
@@ -22,6 +23,21 @@ const ProblemsPage = () => {
   const [problems, setProblems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const { user } = useAuth();
+  const isAdmin = user?.email === 'sanskar.20253248@mnnit.ac.in';
+
+  const handleDelete = async (e, id) => {
+    e.stopPropagation();
+    if (!window.confirm('Are you sure you want to delete this question?')) return;
+    try {
+      await client.delete('/problems/question', { params: { id, topic, difficulty } });
+      setProblems(problems.filter(p => p._id !== id));
+    } catch (err) {
+      console.error('Failed to delete problem:', err);
+      alert('Failed to delete problem.');
+    }
+  };
 
   useEffect(() => {
     const fetchProblems = async () => {
@@ -108,7 +124,16 @@ const ProblemsPage = () => {
                 transition={{ duration: 0.35, delay: 0.04 * Math.min(i, 15) }}
                 whileHover={{ y: -4 }}
               >
-                <div className="problem-card-top" style={{ justifyContent: 'flex-end' }}>
+                <div className="problem-card-top" style={{ justifyContent: 'space-between' }}>
+                  {isAdmin ? (
+                    <button 
+                      onClick={(e) => handleDelete(e, problem._id)}
+                      style={{ background: 'transparent', border: 'none', color: '#C05A4A', cursor: 'pointer', fontSize: '1.2rem', padding: '0' }}
+                      title="Delete Question"
+                    >
+                      🗑
+                    </button>
+                  ) : <div />}
                   <span className="problem-acceptance" style={{ color: meta.color }}>
                     ⚱ {problem.acceptance}
                   </span>

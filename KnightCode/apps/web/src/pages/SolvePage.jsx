@@ -31,77 +31,77 @@ function solution() {
 const LANG_MONACO = { cpp: 'cpp', python: 'python', javascript: 'javascript' };
 
 const difficultyMeta = {
-  easy:   { color: '#6DBF8A', label: 'Easy' },
+  easy: { color: '#6DBF8A', label: 'Easy' },
   medium: { color: '#D4A83C', label: 'Medium' },
-  hard:   { color: '#C05A4A', label: 'Hard' },
+  hard: { color: '#C05A4A', label: 'Hard' },
 };
 
 /* ── Helpers ─────────────────────────────────────── */
 const parseProblemHTML = (raw) => {
   if (!raw) return { desc: '', example: '' };
-  
+
   const parser = new DOMParser();
   const doc = parser.parseFromString(raw, 'text/html');
-  
+
   let descText = '';
   let exampleText = '';
   let inExample = false;
   let inInput = false;
 
   Array.from(doc.body.childNodes).forEach(node => {
-     let tagName = node.nodeName.toUpperCase();
-     let text = node.textContent || '';
-     let lowerTxt = text.toLowerCase().trim();
-     
-     if (tagName === 'H3' || tagName === 'H2' || tagName === 'H4' || tagName === 'H1' || tagName === 'B' || tagName === 'STRONG') {
-         if (lowerTxt === 'problem statement' || lowerTxt === '<p> problem statement <p>' || lowerTxt === 'problem statement <p>') {
-             return; // skip label
-         } else if (lowerTxt === 'input' || lowerTxt.includes('input format')) {
-             inInput = true;
-             inExample = false;
-             return;
-         } else if (lowerTxt === 'output' || lowerTxt.includes('output format')) {
-             inInput = true;
-             inExample = false;
-             return;
-         } else if (lowerTxt === 'example' || lowerTxt === 'examples') {
-             inInput = false;
-             inExample = true;
-             return;
-         }
-     }
-     
-     if (tagName === 'P' && (lowerTxt === 'problem statement' || lowerTxt === '<p> problem statement <p>' || lowerTxt === 'problem statement <p>')) {
-         return; // skip
-     }
+    let tagName = node.nodeName.toUpperCase();
+    let text = node.textContent || '';
+    let lowerTxt = text.toLowerCase().trim();
 
-     let parsedText = '';
-     if (tagName === 'P' || tagName === 'DIV') {
-         const clone = node.cloneNode(true);
-         clone.querySelectorAll('br').forEach(br => br.replaceWith('\n'));
-         parsedText = clone.textContent;
-     } else if (tagName === '#text') {
-         parsedText = text;
-     } else {
-         const clone = node.cloneNode(true);
-         if (clone.querySelectorAll) {
-            clone.querySelectorAll('br').forEach(br => br.replaceWith('\n'));
-         }
-         parsedText = clone.textContent;
-     }
+    if (tagName === 'H3' || tagName === 'H2' || tagName === 'H4' || tagName === 'H1' || tagName === 'B' || tagName === 'STRONG') {
+      if (lowerTxt === 'problem statement' || lowerTxt === '<p> problem statement <p>' || lowerTxt === 'problem statement <p>') {
+        return; // skip label
+      } else if (lowerTxt === 'input' || lowerTxt.includes('input format')) {
+        inInput = true;
+        inExample = false;
+        return;
+      } else if (lowerTxt === 'output' || lowerTxt.includes('output format')) {
+        inInput = true;
+        inExample = false;
+        return;
+      } else if (lowerTxt === 'example' || lowerTxt === 'examples') {
+        inInput = false;
+        inExample = true;
+        return;
+      }
+    }
 
-     if (inExample) {
-         if (parsedText.trim()) exampleText += parsedText + '\n\n';
-     } else if (!inInput) {
-         let clean = parsedText.replace(/<p>\s*problem statement\s*(<p>|<\/p>)?/gi, '');
-         if (clean.trim()) descText += clean + '\n\n';
-     }
+    if (tagName === 'P' && (lowerTxt === 'problem statement' || lowerTxt === '<p> problem statement <p>' || lowerTxt === 'problem statement <p>')) {
+      return; // skip
+    }
+
+    let parsedText = '';
+    if (tagName === 'P' || tagName === 'DIV') {
+      const clone = node.cloneNode(true);
+      clone.querySelectorAll('br').forEach(br => br.replaceWith('\n'));
+      parsedText = clone.textContent;
+    } else if (tagName === '#text') {
+      parsedText = text;
+    } else {
+      const clone = node.cloneNode(true);
+      if (clone.querySelectorAll) {
+        clone.querySelectorAll('br').forEach(br => br.replaceWith('\n'));
+      }
+      parsedText = clone.textContent;
+    }
+
+    if (inExample) {
+      if (parsedText.trim()) exampleText += parsedText + '\n\n';
+    } else if (!inInput) {
+      let clean = parsedText.replace(/<p>\s*problem statement\s*(<p>|<\/p>)?/gi, '');
+      if (clean.trim()) descText += clean + '\n\n';
+    }
   });
 
   if (!descText.trim() && !exampleText.trim()) {
-      let clean = doc.body.textContent || raw;
-      clean = clean.replace(/<p>\s*problem statement\s*(<p>|<\/p>)?/gi, '');
-      return { desc: clean.trim(), example: '' };
+    let clean = doc.body.textContent || raw;
+    clean = clean.replace(/<p>\s*problem statement\s*(<p>|<\/p>)?/gi, '');
+    return { desc: clean.trim(), example: '' };
   }
 
   return { desc: descText.trim(), example: exampleText.trim() };
@@ -145,16 +145,16 @@ const SolvePage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState(() => {
-      const saved = localStorage.getItem(`kc_tab_${id}`);
-      return saved || 'description';
+    const saved = localStorage.getItem(`kc_tab_${id}`);
+    return saved || 'description';
   });
   const [lang, setLang] = useState(() => {
-      const saved = localStorage.getItem(`kc_lang_${id}`);
-      return saved || 'cpp';
+    const saved = localStorage.getItem(`kc_lang_${id}`);
+    return saved || 'cpp';
   });
   const [code, setCode] = useState(() => {
-      const saved = localStorage.getItem(`kc_code_${id}`);
-      return saved || TEMPLATES.cpp;
+    const saved = localStorage.getItem(`kc_code_${id}`);
+    return saved || TEMPLATES.cpp;
   });
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState(null);
@@ -170,15 +170,15 @@ const SolvePage = () => {
 
   // Persist states
   useEffect(() => {
-      if (id) localStorage.setItem(`kc_tab_${id}`, activeTab);
+    if (id) localStorage.setItem(`kc_tab_${id}`, activeTab);
   }, [activeTab, id]);
 
   useEffect(() => {
-      if (id) localStorage.setItem(`kc_lang_${id}`, lang);
+    if (id) localStorage.setItem(`kc_lang_${id}`, lang);
   }, [lang, id]);
 
   useEffect(() => {
-      if (id) localStorage.setItem(`kc_code_${id}`, code);
+    if (id) localStorage.setItem(`kc_code_${id}`, code);
   }, [code, id]);
 
   /* Fetch full question */
@@ -189,29 +189,29 @@ const SolvePage = () => {
       .then(res => {
         const data = res.data;
         if (data && data.description) {
-            const parsed = parseProblemHTML(data.description);
-            data.description = parsed.desc;
-            data.example = parsed.example || data.example;
+          const parsed = parseProblemHTML(data.description);
+          data.description = parsed.desc;
+          data.example = parsed.example || data.example;
         }
         setQuestion(data);
         setIsSolutionRevealed(false);
         // Seed custom testcases
         if (data && data.testCases) {
-           const sampleTcs = data.testCases.filter(tc => !tc.hidden).map(tc => ({ input: String(tc.input || '') }));
-           if (sampleTcs.length > 0) {
-             setCustomTestCases(sampleTcs.slice(0, 8));
-           }
+          const sampleTcs = data.testCases.filter(tc => !tc.hidden).map(tc => ({ input: String(tc.input || '') }));
+          if (sampleTcs.length > 0) {
+            setCustomTestCases(sampleTcs.slice(0, 8));
+          }
         }
         // Only seed editor with solution language if not found in local storage
         const savedLang = localStorage.getItem(`kc_lang_${id}`);
         const savedCode = localStorage.getItem(`kc_code_${id}`);
-        
+
         if (!savedCode && !savedLang) {
-            const solLang = res.data?.solution?.language;
-            if (solLang && TEMPLATES[solLang]) {
-              setLang(solLang);
-              setCode(TEMPLATES[solLang]);
-            }
+          const solLang = res.data?.solution?.language;
+          if (solLang && TEMPLATES[solLang]) {
+            setLang(solLang);
+            setCode(TEMPLATES[solLang]);
+          }
         }
       })
       .catch(() => setError('Failed to load problem.'))
@@ -232,7 +232,7 @@ const SolvePage = () => {
     setLang(l);
     // Overwrite only if they haven't written custom code
     if (code === TEMPLATES.cpp || code === TEMPLATES.python || code === TEMPLATES.javascript) {
-        setCode(TEMPLATES[l] || '');
+      setCode(TEMPLATES[l] || '');
     }
   };
 
@@ -310,13 +310,13 @@ const SolvePage = () => {
               Discussion
             </button>
             {isAdmin && (
-               <button
-                 className={`solve-tab-btn ${activeTab === 'admin' ? 'active' : ''}`}
-                 onClick={() => setActiveTab('admin')}
-                 style={{ color: activeTab === 'admin' ? '#C05A4A' : '#A05A4A', borderBottomColor: activeTab === 'admin' ? '#C05A4A' : 'transparent' }}
-               >
-                 ⚙ Edit
-               </button>
+              <button
+                className={`solve-tab-btn ${activeTab === 'admin' ? 'active' : ''}`}
+                onClick={() => setActiveTab('admin')}
+                style={{ color: activeTab === 'admin' ? '#C05A4A' : '#A05A4A', borderBottomColor: activeTab === 'admin' ? '#C05A4A' : 'transparent' }}
+              >
+                ⚙ Edit
+              </button>
             )}
           </div>
 
@@ -331,10 +331,10 @@ const SolvePage = () => {
             ) : activeTab === 'example' ? (
               <ExampleTab question={question} />
             ) : activeTab === 'solution' ? (
-              <SolutionTab 
-                question={question} 
-                revealed={isSolutionRevealed} 
-                onReveal={() => setIsSolutionRevealed(true)} 
+              <SolutionTab
+                question={question}
+                revealed={isSolutionRevealed}
+                onReveal={() => setIsSolutionRevealed(true)}
               />
             ) : activeTab === 'discussion' ? (
               <DiscussionTab />
@@ -380,8 +380,8 @@ const SolvePage = () => {
 
           <AnimatePresence>
             {showConsole && (
-              <motion.div 
-                className="solve-testcases-console" 
+              <motion.div
+                className="solve-testcases-console"
                 initial={{ height: 0 }}
                 animate={{ height: '300px' }}
                 exit={{ height: 0 }}
@@ -454,24 +454,24 @@ const SolvePage = () => {
                         ) : runTestResult ? (
                           <div>
                             {runTestResult.overallStatus === 'Error' ? (
-                               <div className="solve-run-status error">{runTestResult.message}</div>
+                              <div className="solve-run-status error">{runTestResult.message}</div>
                             ) : (
-                               <>
-                                 <div className="solve-run-status success">Execution Completed</div>
-                                 {runTestResult.testResults && runTestResult.testResults.map((tr, i) => (
-                                   <div key={i} className="solve-run-tc-result">
-                                     <span className="solve-run-label">Case {i + 1}</span>
-                                     <div className="solve-run-box">
-                                       <span style={{color: '#8A7A5A'}}>Input:</span><br/>
-                                       {tr.input}
-                                     </div>
-                                     <div className="solve-run-box">
-                                       <span style={{color: '#8A7A5A'}}>Output:</span><br/>
-                                       {tr.actual}
-                                     </div>
-                                   </div>
-                                 ))}
-                               </>
+                              <>
+                                <div className="solve-run-status success">Execution Completed</div>
+                                {runTestResult.testResults && runTestResult.testResults.map((tr, i) => (
+                                  <div key={i} className="solve-run-tc-result">
+                                    <span className="solve-run-label">Case {i + 1}</span>
+                                    <div className="solve-run-box">
+                                      <span style={{ color: '#8A7A5A' }}>Input:</span><br />
+                                      {tr.input}
+                                    </div>
+                                    <div className="solve-run-box">
+                                      <span style={{ color: '#8A7A5A' }}>Output:</span><br />
+                                      {tr.actual}
+                                    </div>
+                                  </div>
+                                ))}
+                              </>
                             )}
                           </div>
                         ) : (
@@ -525,13 +525,13 @@ const SolvePage = () => {
                 ↗ Open on Polygon
               </a>
             )}
-            <button 
+            <button
               className="solve-btn solve-btn-run"
               onClick={() => {
-                 setShowConsole(prev => !prev);
-                 if (!showConsole && consoleTab !== 'result') {
-                    setConsoleTab('testcases');
-                 }
+                setShowConsole(prev => !prev);
+                if (!showConsole && consoleTab !== 'result') {
+                  setConsoleTab('testcases');
+                }
               }}
               style={{ marginRight: 'auto', marginLeft: question?.link ? '20px' : '0' }}
             >
@@ -550,8 +550,8 @@ const SolvePage = () => {
             >
               {runningTest ? 'Running…' : 'Run '}
             </button>
-            <button 
-              className="solve-btn solve-btn-submit" 
+            <button
+              className="solve-btn solve-btn-submit"
               onClick={handleSubmit}
               disabled={submitting || runningTest}
             >
@@ -611,7 +611,7 @@ const ExampleTab = ({ question }) => (
         No specific example scenario found.
       </p>
     )}
-    
+
     {question?.testCases?.length > 0 && (
       <>
         <hr className="solve-divider" />
@@ -659,25 +659,25 @@ const SolutionTab = ({ question, revealed, onReveal }) => {
         boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
       }}>
         <div style={{ fontSize: '3rem', marginBottom: '16px', color: '#D4A83C' }}>📜</div>
-        <h2 style={{ 
-          fontFamily: 'Playfair Display, serif', 
-          color: '#D4A83C', 
-          fontSize: '1.6rem', 
+        <h2 style={{
+          fontFamily: 'Playfair Display, serif',
+          color: '#D4A83C',
+          fontSize: '1.6rem',
           fontStyle: 'italic',
-          marginBottom: '16px' 
+          marginBottom: '16px'
         }}>Seeker, beware!</h2>
-        <p style={{ 
-          color: '#D4C8A0', 
-          fontFamily: 'IM Fell English, serif', 
-          lineHeight: '1.6', 
+        <p style={{
+          color: '#D4C8A0',
+          fontFamily: 'IM Fell English, serif',
+          lineHeight: '1.6',
           marginBottom: '24px',
           fontSize: '1.1rem'
         }}>
-          Thou art about to gaze upon the ancient solution transcripts. 
+          Thou art about to gaze upon the ancient solution transcripts.
           Dost thou truly wish to exploit the arcane knowledge and sacrifice the sacred fun of solving this trial by thine own hand?
         </p>
-        <button 
-          className="solve-btn solve-btn-submit" 
+        <button
+          className="solve-btn solve-btn-submit"
           style={{ width: 'auto', padding: '10px 24px', fontSize: '0.9rem' }}
           onClick={onReveal}
         >
@@ -836,11 +836,11 @@ const AdminEditTab = ({ question, topic, difficulty, id, onRefresh }) => {
     setSaving(true);
     try {
       const updates = {
-         description: desc,
-         example,
-         constraints: constraints.split('\n').map(c => c.trim()).filter(c => c),
-         testCases,
-         solution
+        description: desc,
+        example,
+        constraints: constraints.split('\n').map(c => c.trim()).filter(c => c),
+        testCases,
+        solution
       };
       await client.put('/problems/question', { id, topic, difficulty, updates });
       alert('Problem Updated! ⚔️');
@@ -862,52 +862,52 @@ const AdminEditTab = ({ question, topic, difficulty, id, onRefresh }) => {
 
   return (
     <div className="admin-edit-container">
-       <h2 style={{ color: '#D4A83C', marginTop: 0 }}>⚙️ Reforge Problem</h2>
-       <p className="solve-section-label">Raw Description (HTML/Text)</p>
-       <textarea value={desc} onChange={e => setDesc(e.target.value)} className="admin-textarea" rows={8} />
+      <h2 style={{ color: '#D4A83C', marginTop: 0 }}>⚙️ Reforge Problem</h2>
+      <p className="solve-section-label">Raw Description (HTML/Text)</p>
+      <textarea value={desc} onChange={e => setDesc(e.target.value)} className="admin-textarea" rows={8} />
 
-       <p className="solve-section-label">Example Scenario</p>
-       <textarea value={example} onChange={e => setExample(e.target.value)} className="admin-textarea" rows={6} />
+      <p className="solve-section-label">Example Scenario</p>
+      <textarea value={example} onChange={e => setExample(e.target.value)} className="admin-textarea" rows={6} />
 
-       <p className="solve-section-label">Constraints (One per line)</p>
-       <textarea value={constraints} onChange={e => setConstraints(e.target.value)} className="admin-textarea" rows={4} />
+      <p className="solve-section-label">Constraints (One per line)</p>
+      <textarea value={constraints} onChange={e => setConstraints(e.target.value)} className="admin-textarea" rows={4} />
 
-       <hr className="solve-divider" />
-       <p className="solve-section-label">Test Cases</p>
-       {testCases.map((tc, i) => (
-         <div key={i} className="admin-tc-card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-               <span style={{color: '#D4A83C', fontWeight: 'bold'}}>Case {i+1}</span>
-               <button onClick={() => removeTc(i)} style={{ background: '#C05A4A', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', padding: '4px 8px' }}>✕ Remove</button>
-            </div>
-            <label>Input:</label>
-            <textarea value={tc.input || ''} onChange={e => updateTc(i, 'input', e.target.value)} className="admin-textarea" rows={2} />
-            <label>Expected Output:</label>
-            <textarea value={tc.expectedOutput || ''} onChange={e => updateTc(i, 'expectedOutput', e.target.value)} className="admin-textarea" rows={2} />
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px', cursor: 'pointer' }}>
-               <input type="checkbox" checked={tc.hidden || false} onChange={e => updateTc(i, 'hidden', e.target.checked)} />
-               Hidden Test Case
-            </label>
-         </div>
-       ))}
-       <button onClick={addTc} className="solve-tab-btn" style={{ marginBottom: '20px', border: '1px solid #D4A83C', width: 'fit-content' }}>+ Add Testcase</button>
+      <hr className="solve-divider" />
+      <p className="solve-section-label">Test Cases</p>
+      {testCases.map((tc, i) => (
+        <div key={i} className="admin-tc-card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ color: '#D4A83C', fontWeight: 'bold' }}>Case {i + 1}</span>
+            <button onClick={() => removeTc(i)} style={{ background: '#C05A4A', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', padding: '4px 8px' }}>✕ Remove</button>
+          </div>
+          <label>Input:</label>
+          <textarea value={tc.input || ''} onChange={e => updateTc(i, 'input', e.target.value)} className="admin-textarea" rows={2} />
+          <label>Expected Output:</label>
+          <textarea value={tc.expectedOutput || ''} onChange={e => updateTc(i, 'expectedOutput', e.target.value)} className="admin-textarea" rows={2} />
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px', cursor: 'pointer' }}>
+            <input type="checkbox" checked={tc.hidden || false} onChange={e => updateTc(i, 'hidden', e.target.checked)} />
+            Hidden Test Case
+          </label>
+        </div>
+      ))}
+      <button onClick={addTc} className="solve-tab-btn" style={{ marginBottom: '20px', border: '1px solid #D4A83C', width: 'fit-content' }}>+ Add Testcase</button>
 
-       <hr className="solve-divider" />
-       <p className="solve-section-label">Optimal Solution Data</p>
-       <label style={{color: '#8A7A5A', fontSize: '0.8rem'}}>Language:</label>
-       <input value={solution.language || ''} onChange={e => setSolution({...solution, language: e.target.value})} className="admin-input" />
-       <label style={{color: '#8A7A5A', fontSize: '0.8rem'}}>Time Complexity:</label>
-       <input value={solution.timeComplexity || ''} onChange={e => setSolution({...solution, timeComplexity: e.target.value})} className="admin-input" />
-       <label style={{color: '#8A7A5A', fontSize: '0.8rem'}}>Space Complexity:</label>
-       <input value={solution.spaceComplexity || ''} onChange={e => setSolution({...solution, spaceComplexity: e.target.value})} className="admin-input" />
-       <label style={{color: '#8A7A5A', fontSize: '0.8rem'}}>Explanation:</label>
-       <textarea value={solution.explanation || ''} onChange={e => setSolution({...solution, explanation: e.target.value})} className="admin-textarea" rows={4} />
-       <label style={{color: '#8A7A5A', fontSize: '0.8rem'}}>Code:</label>
-       <textarea value={solution.code || ''} onChange={e => setSolution({...solution, code: e.target.value})} className="admin-textarea" rows={8} style={{ fontFamily: 'monospace' }} />
+      <hr className="solve-divider" />
+      <p className="solve-section-label">Optimal Solution Data</p>
+      <label style={{ color: '#8A7A5A', fontSize: '0.8rem' }}>Language:</label>
+      <input value={solution.language || ''} onChange={e => setSolution({ ...solution, language: e.target.value })} className="admin-input" />
+      <label style={{ color: '#8A7A5A', fontSize: '0.8rem' }}>Time Complexity:</label>
+      <input value={solution.timeComplexity || ''} onChange={e => setSolution({ ...solution, timeComplexity: e.target.value })} className="admin-input" />
+      <label style={{ color: '#8A7A5A', fontSize: '0.8rem' }}>Space Complexity:</label>
+      <input value={solution.spaceComplexity || ''} onChange={e => setSolution({ ...solution, spaceComplexity: e.target.value })} className="admin-input" />
+      <label style={{ color: '#8A7A5A', fontSize: '0.8rem' }}>Explanation:</label>
+      <textarea value={solution.explanation || ''} onChange={e => setSolution({ ...solution, explanation: e.target.value })} className="admin-textarea" rows={4} />
+      <label style={{ color: '#8A7A5A', fontSize: '0.8rem' }}>Code:</label>
+      <textarea value={solution.code || ''} onChange={e => setSolution({ ...solution, code: e.target.value })} className="admin-textarea" rows={8} style={{ fontFamily: 'monospace' }} />
 
-       <button onClick={handleSave} disabled={saving} className="solve-btn solve-btn-submit" style={{ width: '100%', marginTop: '30px', padding: '12px' }}>
-         {saving ? 'Forging...' : 'Save All Changes'}
-       </button>
+      <button onClick={handleSave} disabled={saving} className="solve-btn solve-btn-submit" style={{ width: '100%', marginTop: '30px', padding: '12px' }}>
+        {saving ? 'Forging...' : 'Save All Changes'}
+      </button>
     </div>
   );
 };

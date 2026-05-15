@@ -152,6 +152,35 @@ router.put('/question', adminProtect, async (req, res) => {
   }
 });
 
+// @desc    Delete a question (Admin only)
+// @route   DELETE /api/problems/question
+// @access  Private Admin
+router.delete('/question', adminProtect, async (req, res) => {
+  try {
+    const { id, topic, difficulty } = req.query;
+    if (!id || !topic || !difficulty) {
+      return res.status(400).json({ message: 'Missing required query parameters' });
+    }
+
+    const level = difficulty.charAt(0).toUpperCase() + difficulty.slice(1).toLowerCase();
+
+    const updatedTopic = await Topic.findOneAndUpdate(
+      { name: topic, 'difficulties.level': level },
+      { $pull: { 'difficulties.$.questions': { _id: id } } },
+      { new: true }
+    );
+
+    if (!updatedTopic) {
+      return res.status(404).json({ message: 'Question not found' });
+    }
+
+    res.json({ message: 'Question deleted successfully' });
+  } catch (error) {
+    console.error('Delete question error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 const executor = require('../judge/executor');
 
 // Debounced acceptance percentage recalculation
