@@ -21,19 +21,31 @@ class Executor {
   }
 
   async compile(language, code, tempDir) {
+    const useDocker = process.env.USE_DOCKER === 'true';
+
     if (language === 'cpp') {
       const sourcePath = path.join(tempDir, 'solution.cpp');
-      const binName = 'solution'; // Linux executable inside container
+      const binName = os.platform() === 'win32' ? 'solution.exe' : 'solution';
       fs.writeFileSync(sourcePath, code);
 
       return new Promise((resolve, reject) => {
-        const compiler = spawn('docker', [
-          'run', '--rm', 
-          '-v', `${tempDir}:/app`, 
-          '-w', '/app', 
-          'knightcode-judge', 
-          'g++', 'solution.cpp', '-o', binName, '-O3', '-std=c++17'
-        ]);
+        let command, args;
+        
+        if (useDocker) {
+          command = 'docker';
+          args = [
+            'run', '--rm', 
+            '-v', `${tempDir}:/app`, 
+            '-w', '/app', 
+            'knightcode-judge', 
+            'g++', 'solution.cpp', '-o', 'solution', '-O3', '-std=c++17'
+          ];
+        } else {
+          command = 'g++';
+          args = ['solution.cpp', '-o', binName, '-O3', '-std=c++17'];
+        }
+
+        const compiler = spawn(command, args, { cwd: tempDir });
         
         let errStr = '';
         compiler.stderr.on('data', (data) => { errStr += data.toString(); });
@@ -48,8 +60,8 @@ class Executor {
   }
 
   async run(language, binPath, code, input, timeLimit = 1000, memoryLimit = 268435456, tempDir) {
-    let command = 'docker';
-    let args = [];
+    const useDocker = process.env.USE_DOCKER === 'true';
+    let command, args;
     
     const sourceName = language === 'cpp' ? binPath : `solution.${language === 'python' ? 'py' : 'js'}`;
 
@@ -60,27 +72,42 @@ class Executor {
       }
     }
 
-    const baseArgs = [
-      'run', '-i', '--rm', 
-      '--net=none', '--cpus=0.5', '--memory=256m', 
-      '-v', `${tempDir}:/app`, 
-      '-w', '/app', 
-      '--user', 'judgeuser', 
-      'knightcode-judge'
-    ];
+    if (useDocker) {
+      command = 'docker';
+      const baseArgs = [
+        'run', '-i', '--rm', 
+        '--net=none', '--cpus=0.5', '--memory=256m', 
+        '-v', `${tempDir}:/app`, 
+        '-w', '/app', 
+        '--user', 'judgeuser', 
+        'knightcode-judge'
+      ];
 
-    if (language === 'cpp') {
-      args = [...baseArgs, `./${sourceName}`];
-    } else if (language === 'python') {
-      args = [...baseArgs, 'python3', `./${sourceName}`];
-    } else if (language === 'javascript') {
-      args = [...baseArgs, 'node', `./${sourceName}`];
+      if (language === 'cpp') {
+        args = [...baseArgs, './solution'];
+      } else if (language === 'python') {
+        args = [...baseArgs, 'python3', `./${sourceName}`];
+      } else if (language === 'javascript') {
+        args = [...baseArgs, 'node', `./${sourceName}`];
+      }
     } else {
-      throw new Error('Unsupported language: ' + language);
+      // Direct execution
+      if (language === 'cpp') {
+        command = os.platform() === 'win32' ? `.\\${binPath}` : `./${binPath}`;
+        args = [];
+      } else if (language === 'python') {
+        command = 'python3';
+        args = [sourceName];
+      } else if (language === 'javascript') {
+        command = 'node';
+        args = [sourceName];
+      }
     }
 
+    if (!command) throw new Error('Unsupported language: ' + language);
+
     return new Promise((resolve) => {
-      const child = spawn(command, args);
+      const child = spawn(command, args, { cwd: tempDir });
       let output = '';
       let error = '';
       let isTerminated = false;
