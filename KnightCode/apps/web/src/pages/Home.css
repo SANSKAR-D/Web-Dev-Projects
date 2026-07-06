@@ -4,105 +4,216 @@
   min-height: 100vh;
   color: var(--text);
   overflow-x: hidden;
+  background-color: var(--bg);
 }
 
-/* Hero Section */
-.hero-band {
-  height: 80vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  position: relative;
-  z-index: 10;
-  padding: 2rem;
-}
-
-.hero-band h1 {
-  font-family: var(--font-display);
-  font-size: 4rem;
-  font-style: italic;
-  font-weight: 400;
-  color: var(--gold-bright);
-  margin-bottom: 2rem;
-  text-shadow: 0 4px 12px rgba(0,0,0,0.8);
-}
-
-.hero-actions {
-  display: flex;
-  gap: 1.5rem;
-  justify-content: center;
-}
-
-/* Content Sections */
-.sanctum-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 4rem 2rem;
-  position: relative;
-  z-index: 10;
-}
-
-.section-title {
-  font-family: var(--font-display);
-  font-size: 2rem;
-  font-style: italic;
-  color: var(--gold-mid);
-  margin-bottom: 1.5rem;
-  border-bottom: 1px solid rgba(184, 144, 42, 0.2);
-  padding-bottom: 0.5rem;
-}
-
-/* Grids */
-.carousel-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
-  margin-bottom: 4rem;
-}
-
-.problem-card {
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.problem-header {
+/* Responsive Home Page Layout */
+.home-header {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  padding: 1.5rem 3rem;
+  z-index: 100;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgba(13,11,9,0.9) 0%, rgba(13,11,9,0) 100%);
 }
 
-.problem-title {
-  font-family: var(--font-ui);
-  font-size: 1.25rem;
-  font-weight: 700;
+.home-logo {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-style: italic;
+  font-weight: 600;
+  color: var(--gold-bright);
+  pointer-events: auto;
+  text-shadow: 0 2px 15px rgba(232,192,96,0.3);
+}
+
+.home-nav-actions {
+  pointer-events: auto;
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+/* Sections */
+.home-section {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 2rem;
+  text-align: center;
+}
+
+.home-section-quote {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0 10%;
+  position: relative;
+}
+
+/* Typography */
+.home-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: clamp(2.5rem, 6vw, 6rem);
+  color: var(--gold-bright);
+  text-shadow: 0 4px 25px rgba(0,0,0,0.9);
+  line-height: 1.1;
+  margin: 0;
+}
+
+.home-title span {
   color: var(--text);
 }
 
-.problem-meta {
-  display: flex;
-  gap: 0.75rem;
-  font-family: var(--font-code);
-  font-size: 0.85rem;
-  color: var(--text-muted);
-}
-
-.difficulty-glyph {
-  color: var(--warn);
-}
-
-.difficulty-glyph.easy { color: var(--success); }
-.difficulty-glyph.hard { color: var(--error); }
-
-.badge-pill {
-  background: rgba(184, 144, 42, 0.1);
-  border: 1px solid var(--gold-dim);
-  color: var(--gold-bright);
-  padding: 0.2rem 0.5rem;
-  border-radius: 12px;
-  font-size: 0.8rem;
+.home-descend {
+  position: absolute;
+  bottom: 8%;
+  color: var(--gold-dim);
+  opacity: 0.6;
+  font-size: 0.9rem;
   font-family: var(--font-ui);
+  letter-spacing: 3px;
 }
+
+.home-quote {
+  font-family: var(--font-body);
+  font-size: clamp(1.4rem, 3.5vw, 2.5rem);
+  color: var(--text);
+  text-shadow: 0 4px 20px rgba(0,0,0,0.9);
+  max-width: 800px;
+  text-align: left;
+  line-height: 1.5;
+  opacity: 0.95;
+}
+
+.home-footer-title {
+  font-family: var(--font-display);
+  color: var(--gold-bright);
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(2.2rem, 5.5vw, 5.5rem);
+  letter-spacing: 1px;
+  text-shadow: 0 4px 40px rgba(13,11,9,1), 0 0 20px rgba(13,11,9,0.9);
+  margin: 0 0 2rem 0;
+}
+
+.home-button-group {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.home-vignette {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100vw;
+  height: 50vh;
+  background: linear-gradient(to top, rgba(13,11,9, 1) 0%, rgba(13,11,9, 0.8) 40%, transparent 100%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Fallback/Mobile Layout Styles */
+.mobile-scroll-container {
+  width: 100vw;
+  height: 100vh;
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  position: relative;
+  z-index: 20;
+  background-color: var(--bg);
+}
+
+.mobile-scroll-container .home-section,
+.mobile-scroll-container .home-section-quote {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+.mobile-glow-bg {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80vw;
+  height: 80vw;
+  max-width: 500px;
+  max-height: 500px;
+  background: radial-gradient(circle, rgba(212,168,60,0.08) 0%, rgba(13,11,9,0) 70%);
+  z-index: 5;
+  pointer-events: none;
+}
+
+.canvas-fallback-loader {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--gold-bright);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.5rem;
+  text-align: center;
+  z-index: 100;
+}
+
+/* Media Queries for responsiveness */
+@media (max-width: 768px) {
+  .home-header {
+    padding: 1rem 1.5rem;
+  }
+  
+  .home-logo {
+    font-size: 1.5rem;
+  }
+
+  .home-nav-actions {
+    gap: 0.75rem;
+  }
+  
+  .home-nav-actions button {
+    padding: 0.4rem 1rem !important;
+    font-size: 0.75rem !important;
+  }
+
+  .home-section-quote {
+    padding: 0 1.5rem;
+    justify-content: center;
+  }
+
+  .home-quote {
+    text-align: center;
+    line-height: 1.4;
+  }
+
+  .home-button-group {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 0 2rem;
+  }
+
+  .home-button-group button {
+    width: 100%;
+    max-width: 300px;
+    padding: 1rem 2rem !important;
+    font-size: 1rem !important;
+  }
+  
+  .home-footer-title {
+    margin-bottom: 1.5rem;
+  }
+}

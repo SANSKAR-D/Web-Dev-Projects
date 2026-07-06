@@ -74,6 +74,30 @@ The internal judge (`apps/api/judge/executor.js`) evaluates code with strict `ti
   - **Direct Execution Mode**: Driven by the `USE_DOCKER=false` environment variable. Directly utilizes the host's `g++`, `python3`, or `node` processes. This fallback was specifically architected to allow the judge to function on serverless platforms (like Render) that prohibit Docker-in-Docker functionality.
 - **High-Speed Batching**: Evaluates test cases concurrently in chunks of 10 to drastically reduce execution time.
 
+## 🚀 Production Readiness & Performance Optimization
+
+To prepare the KnightCode platform for production and optimize mobile loading speeds, the following architectural upgrades were implemented:
+
+### 1. Route-Level Code Splitting (React.lazy & Suspense)
+- Eager page imports in `App.jsx` have been replaced with dynamic lazy imports (`React.lazy`).
+- Route transitions are wrapped in a unified `<Suspense>` boundary displaying a brand-compliant **"Ancient Codex"** unrolling screen (`CodexLoader`).
+- This minimizes the initial page bundle size, deferring non-critical bundle loading (e.g. Monaco Editor, visualizer scripts) until pages are actually visited.
+
+### 2. High-Performance Three.js Mobile Bypass
+- **Problem:** The 3D Canvas in `Home.jsx` eagerly loaded a heavy 13.3 MB model (`Ancient.glb`) and Three.js dependencies, causing slow load times and main-thread blocking on mobile.
+- **Solution:** 
+  - Extracted the Three.js Canvas code into `Home3DCanvas.jsx` to force Vite/Rolldown to bundle Three.js and R3F into a separate chunk.
+  - Implemented dynamic mobile detection on screen mount and resize.
+  - **Mobile/Tablet Viewports:** Bypasses mounting or loading `Home3DCanvas` entirely. Mobile users download 0 bytes of Three.js or the 13.3 MB model asset, and instead experience a clean, snap-scrolling HTML layout with a lightweight glowing background fallback.
+  - **Desktop Viewports:** Lazily loads and fades in the 3D scene once the asset bundles are downloaded.
+- **Sacred Geometry Backgrounds:** The background `SacredGeometryCanvas.jsx` automatically shuts down Three.js canvas WebGL loops on devices with a screen width under `768px`, using a 0-CPU animated CSS glow and pulsing star fallback to conserve mobile battery life.
+
+### 3. Fully Responsive Home Page Layout
+- Converted all inline pixel/absolute positions and hardcoded font sizes (like `6rem` or `5.5rem` headings) into responsive, viewport-relative styling in `Home.css` using fluid typography (`clamp()`).
+- Adjusted buttons to stack vertically on small screens for optimal click targets.
+
+---
+
 ## Deployment Architecture
 
 KnightCode is structured for modern, zero-cost cloud deployment:

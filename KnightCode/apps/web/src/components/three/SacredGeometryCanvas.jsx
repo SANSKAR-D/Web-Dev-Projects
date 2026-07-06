@@ -1,11 +1,22 @@
 // src/components/three/SacredGeometryCanvas.jsx
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 
 const SacredGeometryCanvas = () => {
   const mountRef = useRef(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (isMobile) return;
+
     // Scene setup
     const scene = new THREE.Scene();
     
@@ -16,7 +27,7 @@ const SacredGeometryCanvas = () => {
     // Renderer setup
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Limit pixel ratio for performance
     if(mountRef.current) {
       mountRef.current.appendChild(renderer.domElement);
     }
@@ -73,8 +84,6 @@ const SacredGeometryCanvas = () => {
     // Subtle drift and auto-pan config
     let mouseX = 0;
     let mouseY = 0;
-    const targetX = 0;
-    const targetY = 0;
 
     const windowHalfX = window.innerWidth / 2;
     const windowHalfY = window.innerHeight / 2;
@@ -131,7 +140,23 @@ const SacredGeometryCanvas = () => {
       wireMat.dispose();
       renderer.dispose();
     };
-  }, []);
+  }, [isMobile]);
+
+  if (isMobile) {
+    return (
+      <div className="sacred-geometry-fallback">
+        <div className="glow-orb gold-glow-1" />
+        <div className="glow-orb gold-glow-2" />
+        <div className="constellation">
+          <div className="star star-1">✦</div>
+          <div className="star star-2">✦</div>
+          <div className="star star-3">✦</div>
+          <div className="star star-4">✦</div>
+          <div className="star star-5">✦</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div 
@@ -150,3 +175,4 @@ const SacredGeometryCanvas = () => {
 };
 
 export default SacredGeometryCanvas;
+

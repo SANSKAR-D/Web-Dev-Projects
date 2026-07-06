@@ -219,3 +219,73 @@ button {
   transform: translateY(0);
   transition: all 0.3s ease;
 }
+
+/* Sacred Geometry Canvas Mobile Fallback */
+.sacred-geometry-fallback {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  pointer-events: none;
+  background-color: var(--bg);
+  overflow: hidden;
+}
+
+.glow-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+  opacity: 0.15;
+  pointer-events: none;
+}
+
+.gold-glow-1 {
+  top: -10%;
+  left: -10%;
+  width: 50vw;
+  height: 50vw;
+  background: radial-gradient(circle, var(--gold-mid) 0%, transparent 70%);
+  animation: floatOrb 15s ease-in-out infinite alternate;
+}
+
+.gold-glow-2 {
+  bottom: -15%;
+  right: -10%;
+  width: 60vw;
+  height: 60vw;
+  background: radial-gradient(circle, var(--gold-dim) 0%, transparent 70%);
+  animation: floatOrb 20s ease-in-out infinite alternate-reverse;
+}
+
+.constellation {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+.star {
+  position: absolute;
+  color: var(--gold-dim);
+  font-size: 0.8rem;
+  opacity: 0.25;
+  animation: pulseStar 4s ease-in-out infinite;
+}
+
+.star-1 { top: 15%; left: 20%; animation-delay: 0s; }
+.star-2 { top: 40%; left: 80%; animation-delay: 1s; font-size: 0.6rem; }
+.star-3 { top: 75%; left: 15%; animation-delay: 2s; font-size: 0.9rem; }
+.star-4 { top: 85%; left: 70%; animation-delay: 1.5s; font-size: 0.5rem; }
+.star-5 { top: 25%; left: 60%; animation-delay: 2.5s; font-size: 0.7rem; }
+
+@keyframes floatOrb {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(5vw, 5vh) scale(1.1); }
+}
+
+@keyframes pulseStar {
+  0%, 100% { opacity: 0.12; transform: scale(0.9); }
+  50% { opacity: 0.35; transform: scale(1.1); }
+}
+
