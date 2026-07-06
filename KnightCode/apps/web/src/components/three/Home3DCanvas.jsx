@@ -7,6 +7,12 @@ export default function Home3DCanvas({ children }) {
   return (
     <Canvas 
       camera={{ position: [0, 0, 5], fov: 50 }} 
+      dpr={[1, 1.5]}
+      gl={{ 
+        antialias: true, 
+        powerPreference: "high-performance",
+        failIfMajorPerformanceCaveat: true
+      }}
       style={{ position: 'absolute', top: 0, left: 0, zIndex: 10 }}
     >
       <ambientLight intensity={2} color="#F0E0B0" />

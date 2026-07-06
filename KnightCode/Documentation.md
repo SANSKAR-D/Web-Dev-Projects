@@ -96,6 +96,17 @@ To prepare the KnightCode platform for production and optimize mobile loading sp
 - Converted all inline pixel/absolute positions and hardcoded font sizes (like `6rem` or `5.5rem` headings) into responsive, viewport-relative styling in `Home.css` using fluid typography (`clamp()`).
 - Adjusted buttons to stack vertically on small screens for optimal click targets.
 
+### 4. Parallel Font Loading & Critical Chain Elimination
+- **Fonts Preconnecting:** Removed the `@import` statement from `globals.css` and added `<link rel="preconnect" href="https://fonts.googleapis.com">` and `<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>` tags in `index.html`.
+- **Parallel Fetching:** Replaced the css-import link with a direct `<link rel="stylesheet">` in `index.html`. This allows Google Fonts and the local stylesheet to load concurrently, eliminating the render-blocking waterfall chain and reducing FCP by up to 1,000ms.
+
+### 5. WebGL Rendering & Device Pixel Ratio Optimization
+- Restricted the maximum Device Pixel Ratio (`dpr`) of the Three.js `<Canvas>` component in `Home3DCanvas.jsx` to `1.5` instead of default high-dpi configurations (3x/4x on Retina screens).
+- Enabled dedicated GPU hardware acceleration via `gl={{ powerPreference: "high-performance" }}` on the canvas to decrease JavaScript compilation and execution overhead on desktop.
+
+### 6. CDN Aggressive Caching
+- Configured static asset headers in `vercel.json` to instruct Vercel's CDN and the browser to cache JS, CSS, GLB, HDR, WOFF2, and image files aggressively using `Cache-Control: public, max-age=31536000, immutable`.
+
 ---
 
 ## Deployment Architecture
